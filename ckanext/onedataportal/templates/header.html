@@ -1,0 +1,10 @@
+{% ckan_extends %}
+
+{% block header_site_navigation_tabs %}
+  {{ super() }}
+  {% if h.onedataportal_geoportal_url() %}
+    <li>
+      <a href="{{ h.onedataportal_geoportal_url() }}" target="_blank">{{ h.onedataportal_geoportal_name() }}</a>
+    </li>
+  {% endif %}
+{% endblock %}

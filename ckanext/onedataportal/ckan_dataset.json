@@ -108,7 +108,7 @@
     },
     {
       "field_name": "allow_download",
-      "label": "Allow Download",
+      "label": "Allow download",
       "preset": "select",
       "required": false,
       "choices": [

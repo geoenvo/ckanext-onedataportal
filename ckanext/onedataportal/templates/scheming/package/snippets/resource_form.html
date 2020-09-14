@@ -1,0 +1,11 @@
+{% ckan_extends %}
+
+{% block errors %}
+  {{ form.errors(error_summary) }}
+  {%- if errors -%}
+    {%- set schema = h.scheming_get_dataset_schema(dataset_type) -%}
+    {%- snippet 'scheming/snippets/errors.html',
+      errors=errors, fields=schema.resource_fields,
+      entity_type='dataset', object_type=dataset_type -%}
+  {%- endif -%}
+{% endblock %}

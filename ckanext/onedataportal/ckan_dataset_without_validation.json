@@ -1,0 +1,191 @@
+{
+  "scheming_version": 1,
+  "dataset_type": "dataset",
+  "about": "A reimplementation of the default CKAN dataset schema with additional resource fields allow_download and publish_wfs",
+  "about_url": "http://github.com/ckan/ckanext-scheming",
+  "dataset_fields": [
+    {
+      "field_name": "title",
+      "label": "Title",
+      "preset": "title",
+      "form_placeholder": "eg. A descriptive title"
+    },
+    {
+      "field_name": "name",
+      "label": "URL",
+      "preset": "dataset_slug",
+      "form_placeholder": "eg. my-dataset"
+    },
+    {
+      "field_name": "notes",
+      "label": "Description",
+      "form_snippet": "markdown.html",
+      "form_placeholder": "eg. Some useful notes about the data"
+    },
+    {
+      "field_name": "tag_string",
+      "label": "Tags",
+      "preset": "tag_string_autocomplete",
+      "form_placeholder": "eg. economy, mental health, government",
+      "help_text": "Please enter valid tags: tag1, tag2, tag3"
+    },
+    {
+      "field_name": "license_id",
+      "label": "License",
+      "form_snippet": "license.html",
+      "help_text": "License definitions and additional information can be found at http://opendefinition.org/",
+      "default": "other-pd"
+    },
+    {
+      "field_name": "owner_org",
+      "label": "Organization",
+      "preset": "dataset_organization"
+    },
+    {
+      "field_name": "url",
+      "label": "Source",
+      "form_placeholder": "http://example.com/dataset.json",
+      "display_property": "foaf:homepage",
+      "display_snippet": "link.html"
+    },
+    {
+      "field_name": "version",
+      "label": "Version",
+      "validators": "ignore_missing unicode package_version_validator",
+      "form_placeholder": "1.0"
+    },
+    {
+      "field_name": "author",
+      "label": "Author",
+      "form_placeholder": "Joe Bloggs",
+      "display_property": "dc:creator"
+    },
+    {
+      "field_name": "author_email",
+      "label": "Author Email",
+      "form_placeholder": "joe@example.com",
+      "display_property": "dc:creator",
+      "display_snippet": "email.html",
+      "display_email_name_field": "author"
+    },
+    {
+      "field_name": "maintainer",
+      "label": "Maintainer",
+      "form_placeholder": "Joe Bloggs",
+      "display_property": "dc:contributor"
+    },
+    {
+      "field_name": "maintainer_email",
+      "label": "Maintainer Email",
+      "form_placeholder": "joe@example.com",
+      "display_property": "dc:contributor",
+      "display_snippet": "email.html",
+      "display_email_name_field": "maintainer"
+    },
+    {
+     "field_name": "extra_metadata",
+     "label": "Extra Metadata",
+     "preset": "composite",
+     "subfields_label": "",
+     "help_text": "Help text about Extra Metadata",
+     "subfields":[
+         {
+           "field_name": "extra_metadata_metadata1",
+           "label": "Metadata 1",
+           "form_placeholder": "Metadata 1",
+           "help_text": "Help text about this field"
+         },
+         {
+           "field_name": "extra_metadata_metadata2",
+           "label": "Metadata 2",
+           "form_placeholder": "Metadata 2",
+           "help_text": "Help text about this field"
+          },
+         {
+           "field_name": "extra_metadata_date",
+           "label": "Date",
+           "preset": "date",
+           "form_placeholder": "yyyy-mm-mm",
+           "help_text": "Help text about this field"
+          },
+          {
+           "field_name": "extra_metadata_select",
+           "label": "Select",
+           "preset": "select",
+           "choices": [
+             {
+               "value": "option1",
+               "label": "Option 1"
+             },
+             {
+               "value": "option2",
+               "label": "Option 2"
+             }
+          ],
+          "help_text": "Help text about this field",
+          "form_attrs": {
+            "class": "form-control"
+          }
+        }
+     ]
+    }
+  ],
+  "resource_fields": [
+    {
+      "field_name": "url",
+      "label": "URL",
+      "preset": "resource_url_upload"
+    },
+    {
+      "field_name": "name",
+      "label": "Name",
+      "form_placeholder": "eg. January 2011 Gold Prices"
+    },
+    {
+      "field_name": "description",
+      "label": "Description",
+      "form_snippet": "markdown.html",
+      "form_placeholder": "Some useful notes about the data"
+    },
+    {
+      "field_name": "format",
+      "label": "Format",
+      "preset": "resource_format_autocomplete",
+      "help_text": "This will be guessed automatically. Leave blank if you wish"
+    },
+    {
+      "field_name": "allow_download",
+      "label": "Allow Download",
+      "preset": "select",
+      "required": false,
+      "choices": [
+        {
+         "value": "True",
+         "label": "Yes"
+        },
+        {
+         "value": "False",
+         "label": "No"
+        }
+      ],
+      "help_text": "Allow users to download the resource file. Blank or Yes will allow downloading, No will disable"
+    },
+    {
+      "field_name": "publish_wfs",
+      "label": "Allow downloading WFS data (for spatial resources)",
+      "preset": "select",
+      "required": false,
+      "choices": [
+        {
+         "value": "True",
+         "label": "Yes (will publish WFS and WMS)"
+        },
+        {
+         "value": "False",
+         "label": "No (publish WMS only)"
+        }
+      ],
+      "help_text": "Allow users to download the spatial resource. Blank or Yes will allow downloading, No will disable"
+    }
+  ]
+}

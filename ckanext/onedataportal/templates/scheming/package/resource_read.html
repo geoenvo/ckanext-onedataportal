@@ -1,34 +1,25 @@
 {% ckan_extends %}
 
-{% block resource_actions %}
-  <ul>
-  {% block resource_actions_inner %}
+{% block resource_actions_inner %}
   {% if h.check_access('package_update', {'id':pkg.id }) %}
     <li>{% link_for _('Manage'), controller='package', action='resource_edit', id=pkg.name, resource_id=res.id, class_='btn btn-default', icon='wrench' %}</li>
   {% endif %}
   {% if res.url and h.is_url(res.url) %}
     <li>
       <div class="btn-group">
-        {% if res.resource_type in ('listing', 'service') %}
-          <a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="{{ res.url }}">
+      {% if res.allow_download != 'False' %}
+        <a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="{{ res.url }}">
+          {% if res.resource_type in ('listing', 'service') %}
             <i class="fa fa-eye"></i> {{ _('View') }}
-          </a>
-        {% elif  res.resource_type == 'api' %}
-          <a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="{{ res.url }}">
+          {% elif  res.resource_type == 'api' %}
             <i class="fa fa-key"></i> {{ _('API Endpoint') }}
-          </a>
-        {% elif (not res.has_views or not res.can_be_previewed) and not res.url_type == 'upload' %}
-          <a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="{{ res.url }}">
+          {% elif (not res.has_views or not res.can_be_previewed) and not res.url_type == 'upload' %}
             <i class="fa fa-external-link"></i> {{ _('Go to resource') }}
-          </a>
-        {% else %}
-          {% if res.allow_download == 'False' %}
           {% else %}
-            <a class="btn btn-primary resource-url-analytics resource-type-{{ res.resource_type }}" href="{{ res.url }}">
-              <i class="fa fa-arrow-circle-o-down"></i> {{ _('Download') }}
-            </a>
+            <i class="fa fa-arrow-circle-o-down"></i> {{ _('Download') }}
           {% endif %}
-        {% endif %}
+        </a>
+      {% endif %}
        {% block download_resource_button %}
         {%if res.datastore_active %}
       <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
@@ -50,8 +41,16 @@
       </div>
     </li>
   {% endif %}
-  {% endblock %}
-  </ul>
+{% endblock %}
+
+{% block resource_read_url %}
+  {% if res.allow_download != 'False' %}
+    {% if res.url and h.is_url(res.url) %}
+      <p class="text-muted ellipsis">{{ _('URL:') }} <a class="resource-url-analytics" href="{{ res.url }}" title="{{ res.url }}">{{ res.url }}</a></p>
+    {% elif res.url %}
+      <p class="text-muted break-word">{{ _('URL:') }} {{ res.url }}</p>
+    {% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block resource_additional_information_inner %}

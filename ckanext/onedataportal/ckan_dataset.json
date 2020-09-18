@@ -81,53 +81,6 @@
       "display_property": "dc:contributor",
       "display_snippet": "email.html",
       "display_email_name_field": "maintainer"
-    },
-    {
-     "field_name": "extra_metadata",
-     "label": "Extra Metadata",
-     "preset": "composite",
-     "subfields_label": "",
-     "help_text": "Help text about Extra Metadata",
-     "subfields":[
-         {
-           "field_name": "extra_metadata_metadata1",
-           "label": "Metadata 1",
-           "form_placeholder": "Metadata 1",
-           "help_text": "Help text about this field"
-         },
-         {
-           "field_name": "extra_metadata_metadata2",
-           "label": "Metadata 2",
-           "form_placeholder": "Metadata 2",
-           "help_text": "Help text about this field"
-          },
-         {
-           "field_name": "extra_metadata_date",
-           "label": "Date",
-           "preset": "date",
-           "form_placeholder": "yyyy-mm-mm",
-           "help_text": "Help text about this field"
-          },
-          {
-           "field_name": "extra_metadata_select",
-           "label": "Select",
-           "preset": "select",
-           "choices": [
-             {
-               "value": "option1",
-               "label": "Option 1"
-             },
-             {
-               "value": "option2",
-               "label": "Option 2"
-             }
-          ],
-          "help_text": "Help text about this field",
-          "form_attrs": {
-            "class": "form-control"
-          }
-        }
-     ]
     }
   ],
   "resource_fields": [
@@ -155,7 +108,7 @@
     },
     {
       "field_name": "allow_download",
-      "label": "Allow Download",
+      "label": "Allow download",
       "preset": "select",
       "required": false,
       "choices": [

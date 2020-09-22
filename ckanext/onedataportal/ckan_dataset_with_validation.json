@@ -154,6 +154,11 @@
       "field_name": "validation_timestamp",
       "label": "Validation timestamp",
       "preset": "hidden_in_form"
+    },
+    {
+      "field_name": "spatial_metadata",
+      "label": "Spatial metadata",
+      "preset": "hidden_in_form"
     }
   ]
 }

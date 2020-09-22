@@ -1,0 +1,233 @@
+{% set spatial_metadata = h.onedataportal_get_json_as_dict(data[field.field_name]) %}
+
+{# comment
+{{ data[field.field_name] }}
+endcomment #}
+
+{% if spatial_metadata and spatial_metadata['qgis'] %}
+<ul>
+  <li>QGIS <!--@-->version: {{ spatial_metadata['qgis']['@version']|default('-', true) }}</li>
+  <li>Parent identifier: {{ spatial_metadata['qgis']['parentidentifier']|default('-', true) }}</li>
+  <li>Identifier: {{ spatial_metadata['qgis']['identifier']|default('-', true) }}</li>
+  <li>Title: {{ spatial_metadata['qgis']['title']|default('-', true) }}</li>
+  <li>Type: {{ spatial_metadata['qgis']['type']|default('-', true) }}</li>
+  <li>Language: {{ spatial_metadata['qgis']['language']|default('-', true) }}</li>
+  <li>Abstract: {{ spatial_metadata['qgis']['abstract']|default('-', true) }}</li>
+  {% if spatial_metadata['qgis']['keywords'] and not spatial_metadata['qgis']['keywords']['@vocabulary'] and spatial_metadata['qgis']['keywords'] is iterable %}
+  <li>Keywords
+  <ul>
+  {% for keyword in spatial_metadata['qgis']['keywords'] %}
+  <li>
+    Keyword category {{ loop.index }}
+    <ul>
+      <li>Vocabulary: {{ keyword['@vocabulary'] }}</li>
+      <li>Keywords
+        <ul>
+          {% if keyword['keyword'] %}
+            {% if keyword['keyword'] is iterable and keyword['keyword'] is not string %}
+              {% for akeyword in keyword['keyword'] %}
+                <li>{{ akeyword|default('-', true) }}</li>
+              {% endfor %}
+            {% elif keyword['keyword'] is string %}
+              <li>{{ keyword['keyword']|default('-', true) }}</li>
+            {% endif %}
+          {% else %}
+            <li>-</li>
+          {% endif %}
+        </ul>
+      </li>
+    </ul>
+  </li>
+  {% endfor %}
+  </ul>
+  </li>
+  {% endif %}
+  {% if spatial_metadata['qgis']['keywords'] and spatial_metadata['qgis']['keywords']['@vocabulary'] %}
+  <li>Keyword <!--@-->vocabulary: {{ spatial_metadata['qgis']['keywords']['@vocabulary']|default('-', true) }}</li>
+  <li>Keywords
+    <ul>
+      {% if spatial_metadata['qgis']['keywords']['keyword'] %}
+        {% if spatial_metadata['qgis']['keywords']['keyword'] is iterable and spatial_metadata['qgis']['keywords']['keyword'] is not string %}
+          {% for keyword in spatial_metadata['qgis']['keywords']['keyword'] %}
+            <li>{{ keyword|default('-', true) }}</li>
+          {% endfor %}
+        {% elif spatial_metadata['qgis']['keywords']['keyword'] is string %}
+          <li>{{ spatial_metadata['qgis']['keywords']['keyword']|default('-', true) }}</li>
+        {% endif %}
+      {% else %}
+        <li>-</li>
+      {% endif %}
+    </ul>
+  </li>
+  {% elif not spatial_metadata['qgis']['keywords'] or spatial_metadata['qgis']['keywords'] is not iterable %}
+  <li>Keyword <!--@-->vocabulary: -</li>
+  <li>Keywords
+    <ul>
+      <li>-</li>
+    </ul>
+  </li>
+  {% endif %}
+  <li>Fees: {{ spatial_metadata['qgis']['fees']|default('-', true) }}</li>
+  <li>Licenses
+    <ul>
+      {% if spatial_metadata['qgis']['license'] and spatial_metadata['qgis']['license'] is iterable and spatial_metadata['qgis']['license'] is not string %}
+        {% for license in spatial_metadata['qgis']['license'] %}
+        <li>{{ license|default('-', true) }}</li>
+        {% endfor %}
+      {% elif spatial_metadata['qgis']['license'] is string %}
+        <li>{{ spatial_metadata['qgis']['license']|default('-', true) }}</li>
+      {% else %}
+        <li>-</li>
+      {% endif %}
+    </ul>
+  </li>
+  <li>Rights
+    <ul>
+      {% if spatial_metadata['qgis']['rights'] and spatial_metadata['qgis']['rights'] is iterable and spatial_metadata['qgis']['rights'] is not string %}
+        {% for right in spatial_metadata['qgis']['rights'] %}
+        <li>{{ right|default('-', true) }}</li>
+        {% endfor %}
+      {% elif spatial_metadata['qgis']['rights'] is string %}
+        <li>{{ spatial_metadata['qgis']['rights']|default('-',  true) }}</li>
+      {% else %}
+        <li>-</li>
+      {% endif %}
+    </ul>
+  </li>
+  <li>Constraints
+    <ul>
+    {% if spatial_metadata['qgis']['constraints'] and spatial_metadata['qgis']['constraints'] is iterable and spatial_metadata['qgis']['constraints'] is not mapping %}
+      {% for constraint in spatial_metadata['qgis']['constraints'] %}
+      <li>
+        Constraint {{ loop.index }}
+        <ul>
+          <li>text: {{ constraint['#text']|default('-', true) }}</li>
+          <li><!--@-->type: {{ constraint['@type']|default('-', true) }}</li>
+        </ul>
+      </li>
+      {% endfor %}
+    {% elif spatial_metadata['qgis']['constraints'] and spatial_metadata['qgis']['constraints'] is mapping %}
+      <li>text: {{ spatial_metadata['qgis']['constraints']['#text']|default('-', true) }}</li>
+      <li><!--@-->type: {{ spatial_metadata['qgis']['constraints']['@type']|default('-', true) }}</li>
+    {% else %}
+      <li>-</li>
+    {% endif %}
+    </ul>
+  </li>
+  <li>
+    Coordinate Reference System
+    <ul>
+      <li>WKT: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['wkt']|default('-', true) }}</li>
+      <li>PROJ4: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['proj4']|default('-', true) }}</li>
+      <li>SRSID: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['srsid']|default('-', true) }}</li>
+      <li>SRID: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['srid']|default('-', true) }}</li>
+      <li>AUTHID: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['authid']|default('-', true) }}</li>
+      <li>DESCRIPTION: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['description']|default('-', true) }}</li>
+      <li>PROJECTIONACRONYM: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['projectionacronym']|default('-', true) }}</li>
+      <li>ELLIPSOIDACRONYM: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['ellipsoidacronym']|default('-', true) }}</li>
+      <li>GEOGRAPHICFLAG: {{ spatial_metadata['qgis']['crs']['spatialrefsys']['geographicflag']|default('-', true) }}</li>
+    </ul>
+  </li>
+  <li>
+    Extent
+    <ul>
+      <li>Spatial <!--@-->minx: {{ spatial_metadata['qgis']['extent']['spatial']['@minx']|default('-', true) }}</li>
+      <li>Spatial <!--@-->maxx: {{ spatial_metadata['qgis']['extent']['spatial']['@maxx']|default('-', true) }}</li>
+      <li>Spatial <!--@-->miny: {{ spatial_metadata['qgis']['extent']['spatial']['@miny']|default('-', true) }}</li>
+      <li>Spatial <!--@-->maxy: {{ spatial_metadata['qgis']['extent']['spatial']['@maxy']|default('-', true) }}</li>
+      <li>Spatial <!--@-->minz: {{ spatial_metadata['qgis']['extent']['spatial']['@minz']|default('-', true) }}</li>
+      <li>Spatial <!--@-->maxz: {{ spatial_metadata['qgis']['extent']['spatial']['@maxz']|default('-', true) }}</li>
+      <li>Spatial <!--@-->crs: {{ spatial_metadata['qgis']['extent']['spatial']['@crs']|default('-', true) }}</li>
+      <li>Spatial <!--@-->dimensions: {{ spatial_metadata['qgis']['extent']['spatial']['@dimensions']|default('-', true) }}</li>
+      <li>Temporal
+        <ul>
+          <li>Period start: {{ spatial_metadata['qgis']['extent']['temporal']['period']['start']|default('-', true) }}</li>
+          <li>Period end: {{ spatial_metadata['qgis']['extent']['temporal']['period']['end']|default('-', true) }}</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>Contact
+    <ul>
+      <li>name: {{ spatial_metadata['qgis']['contact']['name']|default('-', true) }}</li>
+      <li>organization: {{ spatial_metadata['qgis']['contact']['organization']|default('-', true) }}</li>
+      <li>role: {{ spatial_metadata['qgis']['contact']['role']|default('-', true) }}</li>
+      <li>position: {{ spatial_metadata['qgis']['contact']['position']|default('-', true) }}</li>
+      <li>voice: {{ spatial_metadata['qgis']['contact']['voice']|default('-', true) }}</li>
+      <li>fax: {{ spatial_metadata['qgis']['contact']['fax']|default('-', true) }}</li>
+      <li>email: {{ spatial_metadata['qgis']['contact']['email']|default('-', true) }}</li>
+    </ul>
+  </li>
+  <li>Contact address
+    <ul>
+    {% if spatial_metadata['qgis']['contact']['contactAddress'] and spatial_metadata['qgis']['contact']['contactAddress'] is iterable and spatial_metadata['qgis']['contact']['contactAddress'] is not mapping %}
+      {% for contactaddress in spatial_metadata['qgis']['contact']['contactAddress'] %}
+      <li>
+        Contact address {{ loop.index }}
+        <ul>
+          <li>Type: {{ contactaddress['type']|default('-', true) }}</li>
+          <li>Address: {{ contactaddress['address']|default('-', true) }}</li>
+          <li>Postal code: {{ contactaddress['postalcode']|default('-', true) }}</li>
+          <li>City: {{ contactaddress['city']|default('-', true) }}</li>
+          <li>Administrative area: {{ contactaddress['administrativearea']|default('-', true) }}</li>
+          <li>Country: {{ contactaddress['country']|default('-', true) }}</li>
+        </ul>
+      </li>
+      {% endfor %}
+    {% elif spatial_metadata['qgis']['contact']['contactAddress'] and spatial_metadata['qgis']['contact']['contactAddress'] is mapping %}
+      <li>Type: {{ spatial_metadata['qgis']['contact']['contactAddress']['type']|default('-', true) }}</li>
+      <li>Address: {{ spatial_metadata['qgis']['contact']['contactAddress']['address']|default('-', true) }}</li>
+      <li>Postal code: {{ spatial_metadata['qgis']['contact']['contactAddress']['postalcode']|default('-', true) }}</li>
+      <li>City: {{ spatial_metadata['qgis']['contact']['contactAddress']['city']|default('-', true) }}</li>
+      <li>Administrative area: {{ spatial_metadata['qgis']['contact']['contactAddress']['administrativearea']|default('-', true) }}</li>
+      <li>Country: {{ spatial_metadata['qgis']['contact']['contactAddress']['country']|default('-', true) }}</li>
+    {% else %}
+      <li>-</li>
+    {% endif %}
+    </ul>
+  </li>
+  <li>Links
+    <ul>
+    {% if spatial_metadata['qgis']['links'] and spatial_metadata['qgis']['links']['link'] is iterable and spatial_metadata['qgis']['links']['link'] is not mapping %}
+      {% for link in spatial_metadata['qgis']['links']['link'] %}
+      <li>
+        Link {{ loop.index }}
+        <ul>
+          <li><!--@-->name: {{ link['@name']|default('-', true) }}</li>
+          <li><!--@-->type: {{ link['@type']|default('-', true) }}</li>
+          <li><!--@-->url: {{ link['@url']|default('-', true) }}</li>
+          <li><!--@-->description: {{ link['@description']|default('-', true) }}</li>
+          <li><!--@-->format: {{ link['@format']|default('-', true) }}</li>
+          <li><!--@-->mime: {{ link['@mimeType']|default('-', true) }}</li>
+          <li><!--@-->size: {{ link['@size']|default('-', true) }}</li>
+        </ul>
+      </li>
+      {% endfor %}
+    {% elif spatial_metadata['qgis']['links'] and spatial_metadata['qgis']['links']['link'] is mapping %}
+      <li><!--@-->name: {{ spatial_metadata['qgis']['links']['link']['@name']|default('-', true) }}</li>
+      <li><!--@-->type: {{ spatial_metadata['qgis']['links']['link']['@type']|default('-', true) }}</li>
+      <li><!--@-->url: {{ spatial_metadata['qgis']['links']['link']['@url']|default('-', true) }}</li>
+      <li><!--@-->description: {{ spatial_metadata['qgis']['links']['link']['@description']|default('-', true) }}</li>
+      <li><!--@-->format: {{ spatial_metadata['qgis']['links']['link']['@format']|default('-', true) }}</li>
+      <li><!--@-->mime: {{ spatial_metadata['qgis']['links']['link']['@mimeType']|default('-', true) }}</li>
+      <li><!--@-->size: {{ spatial_metadata['qgis']['links']['link']['@size']|default('-', true) }}</li>
+    {% else %}
+      <li>-</li>
+    {% endif %}
+    </ul>
+  </li>
+  <li>History
+    <ul>
+      {% if spatial_metadata['qgis']['history'] and spatial_metadata['qgis']['history'] is iterable and spatial_metadata['qgis']['history'] is not string %}
+        {% for history in spatial_metadata['qgis']['history'] %}
+        <li>{{ history|default('-', true) }}</li>
+        {% endfor %}
+      {% elif spatial_metadata['qgis']['history'] is string %}
+        <li>{{ spatial_metadata['qgis']['history']|default('-', true) }}</li>
+      {% else %}
+        <li>-</li>
+      {% endif %}
+    </ul>
+  </li>
+</ul>
+{% endif %}

@@ -129,7 +129,12 @@
         "form_snippet": "json.html",
         "display_snippet": "json.html"
       }
+    },
+    {
+      "preset_name": "hidden_in_form",
+      "values": {
+        "form_snippet": "hidden.html"
+      }
     }
-
   ]
 }

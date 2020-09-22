@@ -139,6 +139,11 @@
         }
       ],
       "help_text": "Allow users to download the spatial resource. Blank or Yes will allow downloading, No will disable"
+    },
+    {
+      "field_name": "spatial_metadata",
+      "label": "Spatial metadata",
+      "preset": "hidden_in_form"
     }
   ]
 }

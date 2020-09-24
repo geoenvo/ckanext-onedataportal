@@ -1,6 +1,6 @@
-import six
+# encoding: utf-8
+
 import logging
-from itertools import count
 
 
 log = logging.getLogger(__name__)
@@ -9,6 +9,8 @@ log = logging.getLogger(__name__)
 def allowed_users_convert(key, data, errors, context):
     '''Reimplemented from ckanext-privatedatasets
     '''
+    import six
+    from itertools import count
     #log.debug(data)
     if ('allowed_users',) in data and isinstance(data[('allowed_users',)], list):
         allowed_users = data[('allowed_users',)]
@@ -27,8 +29,8 @@ def allowed_users_convert(key, data, errors, context):
             #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             #log.debug(allowed_users)
             data[('allowed_users',)] = allowed_users
-            '''
             # when using ckanext-scheming fields for allowed_users_str this loop causes TypeError: 'unicode' object does not support item assignment in dictionaries
+            '''
             for num, allowed_user in zip(count(current_index + 1), allowed_users):
                 log.debug(key[0])
                 log.debug(isinstance(key[0], unicode))

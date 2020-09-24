@@ -1,97 +1,25 @@
+# encoding: utf-8
+
 import logging
-import json
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as t
 
-from ckanext.onedataportal.jobs import save_shapefile_metadata
+from ckanext.onedataportal.helpers import (
+    add_time,
+    naive_to_utc,
+    geoportal_url,
+    geoportal_name,
+    get_json_as_dict,
+)
+from ckanext.onedataportal.jobs import (
+    enqueue_job,
+    save_shapefile_metadata,
+)
 from ckanext.onedataportal.converters import allowed_users_convert
 
 
 log = logging.getLogger(__name__)
-
-
-def add_time(dt, weeks=0, days=0, hours=0, minutes=0, seconds=0):
-    '''Return a new datetime after timedelta.
-    '''
-    from datetime import timedelta
-    from datetime import datetime
-    import six
-    if isinstance(dt, six.string_types):
-        dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S.%f')
-    return dt + timedelta(weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
-
-def naive_to_utc(dt, is_dst=None):
-    '''Convert a naive datetime to utc datetime.
-    '''
-    from datetime import datetime
-    import six
-    import pytz
-    import tzlocal
-    from ckan.common import config
-    if isinstance(dt, six.string_types):
-        dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S.%f')
-    timezone_name = config.get('ckan.display_timezone') or 'utc'
-    local = None
-    if timezone_name == 'server':
-        local = tzlocal.get_localzone()
-    if not local:
-        local = pytz.timezone(timezone_name)
-    local_dt = local.localize(dt, is_dst=is_dst)
-    return local_dt.astimezone(pytz.utc)
-
-def geoportal_url():
-    '''Return string value of the geoportal url, the value must be a valid url
-    '''
-    from ckan.common import config
-    value = config.get('ckan.onedataportal.geoportal_url', False)
-    if value:
-        if value.lower().startswith(('http://', 'https://', '/')):
-            return value
-        else:
-            return False
-    return value
-
-def geoportal_name():
-    '''Return string value of the geoportal name, if empty return default
-    '''
-    from ckan.common import config
-    value = config.get('ckan.onedataportal.geoportal_name', 'Geoportal')
-    return value
-
-def _json2dict_or_empty(value, field_name = ""):
-    '''
-    '''
-    try:
-        #log.debug(value)
-        json_dict = json.loads(value)
-    except Exception as e:
-        log.warn('unable to parse json string')
-        json_dict = {}
-    #log.debug(json.dumps(json_dict, indent=4))
-    return (json_dict)
-
-def get_json_as_dict(value):
-    '''Template helper funciton.
-    Returns the value as a dictionary. If if is already
-    a dictionary, the original value is returned. If it is
-    a json dump, it will be parsed into a dictionary. Otherwise
-    an empty dictionary is returned.
-    '''
-    #log.debug('>>>>>>> get_json_as_dict')
-    if isinstance(value, dict):
-        return value
-    else:
-        return(_json2dict_or_empty(value))
-
-def enqueue_job(*args, **kwargs):
-    '''Enqueue an asynchronous job to RQ
-    '''
-    try:
-        return t.enqueue_job(*args, **kwargs)
-    except AttributeError:
-        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
-        return enqueue_job_legacy(*args, **kwargs)
 
 
 class OnedataportalPlugin(p.SingletonPlugin):
@@ -170,7 +98,9 @@ class OnedataportalPlugin(p.SingletonPlugin):
             #log.debug(data_dict)
             if self._resource_is_zip_shapefile(data_dict):
                 #log.debug('resource file is zip shapefile')
-                enqueue_job(save_shapefile_metadata, [data_dict])
+                # 20200924 disable async due to infinite job loop
+                #enqueue_job(save_shapefile_metadata, [data_dict])
+                save_shapefile_metadata(data_dict)
             pass
 
     def before_update(self, context, current_resource, updated_resource):
@@ -188,7 +118,9 @@ class OnedataportalPlugin(p.SingletonPlugin):
         #log.debug(data_dict)
         if self._resource_is_zip_shapefile(data_dict):
             #log.debug('>>>>>>> _resource_is_zip_shapefile')
-            enqueue_job(save_shapefile_metadata, [data_dict])
+            # 20200924 disable async due to infinite job loop
+            #enqueue_job(save_shapefile_metadata, [data_dict])
+            save_shapefile_metadata(data_dict)
         else:
             # resource file changed from zip shapefile?
             #log.debug('resource file changed from zip shapefile')

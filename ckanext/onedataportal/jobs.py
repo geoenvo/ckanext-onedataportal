@@ -1,20 +1,30 @@
-import logging
-import json
-from io import BytesIO
-from zipfile import ZipFile
+# encoding: utf-8
 
-import xmltodict
-import requests
+import logging
 
 import ckan.plugins.toolkit as t
-import ckan.lib.uploader as uploader
 
 
 log = logging.getLogger(__name__)
 
 
+def enqueue_job(*args, **kwargs):
+    '''Enqueue an asynchronous job to RQ
+    '''
+    try:
+        return t.enqueue_job(*args, **kwargs)
+    except AttributeError:
+        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
+        return enqueue_job_legacy(*args, **kwargs)
+
 def save_shapefile_metadata(resource):
     log.debug('>>>>>>> save_shapefile_metadata')
+    import json
+    from io import BytesIO
+    from zipfile import ZipFile
+    import xmltodict
+    import requests
+    import ckan.lib.uploader as uploader
     #log.debug(resource)
     try:
         resource_file = None

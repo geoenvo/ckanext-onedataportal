@@ -34,6 +34,19 @@
       }
     },
     {
+      "preset_name": "allowed_users_autocomplete",
+      "values": {
+        "validators": "ignore_missing allowed_users_convert",
+        "classes": ["control-full"],
+        "form_attrs": {
+          "data-module": "autocomplete allowed-users",
+          "data-module-tags": "",
+          "class": "",
+          "data-module-source": "/api/2/util/user/autocomplete?q=?"
+        }
+      }
+    },
+    {
       "preset_name": "dataset_organization",
       "values": {
         "validators": "owner_org_validator unicode",
@@ -75,6 +88,14 @@
       "preset_name": "select",
       "values": {
         "form_snippet": "select.html",
+        "display_snippet": "select.html",
+        "validators": "scheming_required scheming_choices"
+      }
+    },
+    {
+      "preset_name": "select_noblank",
+      "values": {
+        "form_snippet": "select_noblank.html",
         "display_snippet": "select.html",
         "validators": "scheming_required scheming_choices"
       }

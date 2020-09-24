@@ -5,6 +5,7 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as t
 
 from ckanext.onedataportal.jobs import save_shapefile_metadata
+from ckanext.onedataportal.converters import allowed_users_convert
 
 
 log = logging.getLogger(__name__)
@@ -96,6 +97,7 @@ def enqueue_job(*args, **kwargs):
 class OnedataportalPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.ITemplateHelpers)
+    p.implements(p.IValidators)
     p.implements(p.IResourceController, inherit=True)
 
     # IConfigurer
@@ -117,6 +119,13 @@ class OnedataportalPlugin(p.SingletonPlugin):
             'onedataportal_geoportal_url': geoportal_url,
             'onedataportal_geoportal_name': geoportal_name,
             'onedataportal_get_json_as_dict': get_json_as_dict
+        }
+
+    # IValidators
+
+    def get_validators(self):
+        return {
+            'allowed_users_convert': allowed_users_convert
         }
 
     # IResourceController

@@ -3,13 +3,21 @@
 {% import 'macros/form.html' as form %}
 
 {% block package_metadata_fields_visibility %}
+
 {% resource 'privatedatasets/allowed_users.js' %}
+
+{# if we have a default group then this wants remembering #}
+{% if data.group_id %}
+  <input type="hidden" name="groups__0__id" value="{{ data.group_id }}" />
+{% endif %}
+
 {% set dataset_is_draft = data.get('state', 'draft').startswith('draft') or data.get('state', 'none') ==  'none' %}
 {% set dataset_has_organization = data.owner_org or data.group_id %}
 {% set organizations_available = h.organizations_available('create_dataset') %}
 {% set user_is_sysadmin = h.check_access('sysadmin') %}
 {% set editing =  'id' in data %}
 {% set show_visibility_selector = dataset_has_organization or (organizations_available and (user_is_sysadmin or dataset_is_draft)) %}
+
 {% if show_visibility_selector %}
   {% if user_is_sysadmin or (data.owner_org and h.check_access('organization_update', {'id': data.owner_org})) or (data.group_id and h.check_access('organization_update', {'id': data.group_id})) %}
     <div class="form-group control-full">
@@ -48,27 +56,24 @@
     </div>
   {% endif %}
 {% endif %}
-<div class="form-group">
-  <label for="field-searchable" class="control-label">{{ _('Searchable') }}</label>
-  <div class="controls">
-    <select id="field-searchable" name="searchable" class="form-control">
-      {% for option in [('True', _('True')), ('False', _('False'))] %}
-      <option value="{{ option[0] }}" {% if option[0] == data.searchable|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
-      {% endfor %}
-    </select>
-    <span class="info-block info-inline">
-      <i class="fa fa-info-circle"></i>
-      {% trans %}
-        Searchable datasets can be searched by anyone, while not-searchable datasets can only be accessed by entering directly its URL.
-      {% endtrans %}
-    </span>
-  </div>
-</div>
-{% set users_attrs = {'data-module': 'autocomplete', 'data-module-tags': '', 'data-module-source': '/api/2/util/user/autocomplete?q=?'} %}
-{{ form.input('allowed_users_str', label=_('Allowed Users'), id='field-allowed_users_str', placeholder=_('Allowed Users'), value=h.get_allowed_users_str(data.allowed_users), error=errors.custom_text, classes=['control-full'], attrs=users_attrs) }}
+
+{# NOTE: ckanext-privatedatasets field 'allowed_users_str' is implemented in ckanext-scheming ckan_dataset.json #}
+
 {% if editing and h.show_acquire_url_on_edit() or not editing and h.show_acquire_url_on_create()  %}
   {{ form.input('acquire_url', label=_('Acquire URL'), id='field-acquire_url', placeholder=_('http://example.com/acquire/'), value=data.acquire_url, error=errors.custom_text, classes=['control-medium']) }}
 {% else %}
     <input type="hidden" name="acquire_url" id="acquire_url" value="{{ data.acquire_url }}" />
+{% endif %}
+
+{% if data.id and h.check_access('package_delete', {'id': data.id}) and data.state != 'active' %}
+  <div class="control-group">
+    <label for="field-state" class="control-label">{{ _('State') }}</label>
+    <div class="controls">
+      <select id="field-state" name="state">
+        <option value="active" {% if data.get('state', 'none') == 'active' %} selected="selected" {% endif %}>{{ _('Active') }}</option>
+        <option value="deleted" {% if data.get('state', 'none') == 'deleted' %} selected="selected" {% endif %}>{{ _('Deleted') }}</option>
+      </select>
+    </div>
+  </div>
 {% endif %}
 {% endblock %}

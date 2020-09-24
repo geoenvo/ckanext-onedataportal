@@ -1,7 +1,7 @@
 {
   "scheming_version": 1,
   "dataset_type": "dataset",
-  "about": "A reimplementation of the default CKAN dataset schema with additional resource fields allow_download and publish_wfs",
+  "about": "A reimplementation of the default CKAN dataset schema with additional resource fields allow_download, publish_wfs, validation_options, validation_status, and validation_timestamp",
   "about_url": "http://github.com/ckan/ckanext-scheming",
   "dataset_fields": [
     {
@@ -40,6 +40,13 @@
       "field_name": "owner_org",
       "label": "Organization",
       "preset": "dataset_organization"
+    },
+    {
+      "field_name": "allowed_users_str",
+      "label": "Allowed Users",
+      "preset": "allowed_users_autocomplete",
+      "form_placeholder": "Allowed Users",
+      "help_text": "Assign users that will be given access to the private dataset"
     },
     {
       "field_name": "url",
@@ -109,7 +116,7 @@
     {
       "field_name": "allow_download",
       "label": "Allow download",
-      "preset": "select",
+      "preset": "select_noblank",
       "required": false,
       "choices": [
         {
@@ -121,29 +128,30 @@
          "label": "No"
         }
       ],
-      "help_text": "Allow users to download the resource file. Blank or Yes will allow downloading, No will disable"
+      "help_text": "Allow users to download the resource file. Yes will allow downloading, No will disable downloading"
     },
     {
       "field_name": "publish_wfs",
       "label": "Allow downloading WFS data (for spatial resources)",
-      "preset": "select",
+      "preset": "select_noblank",
       "required": false,
       "choices": [
         {
          "value": "True",
-         "label": "Yes (will publish WFS and WMS)"
+         "label": "Yes (will publish WFS and WMS services)"
         },
         {
          "value": "False",
-         "label": "No (publish WMS only)"
+         "label": "No (publish WMS service only)"
         }
       ],
-      "help_text": "Allow users to download the spatial resource. Blank or Yes will allow downloading, No will disable"
+      "help_text": "Allow users to download the spatial resource. Yes will publish the WFS and WMS services, No will only publish the WMS service"
     },
     {
       "field_name": "spatial_metadata",
       "label": "Spatial metadata",
-      "preset": "hidden_in_form"
+      "preset": "hidden_in_form",
+      "display_snippet": "spatial_metadata.html"
     }
   ]
 }

@@ -54,6 +54,63 @@ def geoportal_name():
     value = config.get('ckan.onedataportal.geoportal_name', 'Geoportal')
     return value
 
+def navlink1_url():
+    '''Return string value of the navlink1 url, the value must be a valid url
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink1_url', False)
+    if value:
+        if value.lower().startswith(('http://', 'https://', '/')):
+            return value
+        else:
+            return False
+    return value
+
+def navlink1_name():
+    '''Return string value of the navlink1 name, if empty return default
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink1_name', 'Link 1')
+    return value
+
+def navlink2_url():
+    '''Return string value of the navlink2 url, the value must be a valid url
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink2_url', False)
+    if value:
+        if value.lower().startswith(('http://', 'https://', '/')):
+            return value
+        else:
+            return False
+    return value
+
+def navlink2_name():
+    '''Return string value of the navlink2 name, if empty return default
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink2_name', 'Link 2')
+    return value
+
+def navlink3_url():
+    '''Return string value of the navlink3 url, the value must be a valid url
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink3_url', False)
+    if value:
+        if value.lower().startswith(('http://', 'https://', '/')):
+            return value
+        else:
+            return False
+    return value
+
+def navlink3_name():
+    '''Return string value of the navlink3 name, if empty return default
+    '''
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.navlink3_name', 'Link 3')
+    return value
+
 def _json2dict_or_empty(value, field_name = ""):
     '''
     '''

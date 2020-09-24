@@ -2,9 +2,24 @@
 
 {% block header_site_navigation_tabs %}
   {{ super() }}
+  {% if h.onedataportal_navlink1_url() %}
+    <li>
+      <a href="{{ h.onedataportal_navlink1_url() }}" title="{{ h.onedataportal_navlink1_name() }}" target="_blank">{{ h.onedataportal_navlink1_name() }}</a>
+    </li>
+  {% endif %}
+  {% if h.onedataportal_navlink2_url() %}
+    <li>
+      <a href="{{ h.onedataportal_navlink2_url() }}" title="{{ h.onedataportal_navlink2_name() }}" target="_blank">{{ h.onedataportal_navlink2_name() }}</a>
+    </li>
+  {% endif %}
+  {% if h.onedataportal_navlink3_url() %}
+    <li>
+      <a href="{{ h.onedataportal_navlink3_url() }}" title="{{ h.onedataportal_navlink3_name() }}" target="_blank">{{ h.onedataportal_navlink3_name() }}</a>
+    </li>
+  {% endif %}
   {% if h.onedataportal_geoportal_url() %}
     <li>
-      <a href="{{ h.onedataportal_geoportal_url() }}" target="_blank">{{ h.onedataportal_geoportal_name() }}</a>
+      <a href="{{ h.onedataportal_geoportal_url() }}" title="{{ h.onedataportal_geoportal_name() }}" target="_blank">{{ h.onedataportal_geoportal_name() }}</a>
     </li>
   {% endif %}
 {% endblock %}

@@ -10,6 +10,12 @@ from ckanext.onedataportal.helpers import (
     naive_to_utc,
     geoportal_url,
     geoportal_name,
+    navlink1_url,
+    navlink1_name,
+    navlink2_url,
+    navlink2_name,
+    navlink3_url,
+    navlink3_name,
     get_json_as_dict,
 )
 from ckanext.onedataportal.jobs import (
@@ -46,6 +52,12 @@ class OnedataportalPlugin(p.SingletonPlugin):
             'onedataportal_naive_to_utc': naive_to_utc,
             'onedataportal_geoportal_url': geoportal_url,
             'onedataportal_geoportal_name': geoportal_name,
+            'onedataportal_navlink1_url': navlink1_url,
+            'onedataportal_navlink1_name': navlink1_name,
+            'onedataportal_navlink2_url': navlink2_url,
+            'onedataportal_navlink2_name': navlink2_name,
+            'onedataportal_navlink3_url': navlink3_url,
+            'onedataportal_navlink3_name': navlink3_name,
             'onedataportal_get_json_as_dict': get_json_as_dict
         }
 

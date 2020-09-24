@@ -19,11 +19,11 @@
 {% set show_visibility_selector = dataset_has_organization or (organizations_available and (user_is_sysadmin or dataset_is_draft)) %}
 
 {% if show_visibility_selector %}
-  {% if user_is_sysadmin or (data.owner_org and h.check_access('organization_update', {'id': data.owner_org})) or (data.group_id and h.check_access('organization_update', {'id': data.group_id})) %}
+  {% if user_is_sysadmin %}
     <div class="form-group control-full">
       <label for="field-private" class="control-label">{{ _('Visibility') }}</label>
       <div class="controls">
-        <select id="field-private" name="private" class="form-control">
+        <select id="field-private" name="private" data-module="allowed-users" class="form-control">
           {% for option in [('True', _('Private')), ('False', _('Public'))] %}
           <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
           {% endfor %}
@@ -41,7 +41,7 @@
       <label class="control-label">{{ _('Visibility') }}</label>
       <div class="controls">
         <p class="form-control-static">{% if data.private|trim == 'True' %}{{ _('Private') }}{% elif data.private|trim == 'False' %}{{ _('Public') }}{% else %}{{ _('Private') }}{% endif %}</p>
-        <select id="field-private" name="private" class="form-control hidden" disabled>
+        <select id="field-private" name="private" data-module="allowed-users" class="form-control hidden" disabled>
           {% for option in [('True', _('Private')), ('False', _('Public'))] %}
           <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
           {% endfor %}
@@ -49,7 +49,7 @@
         <span class="info-block info-inline">
           <i class="fa fa-info-circle"></i>
           {% trans %}
-            Only a sysadmin can set the dataset visibility to public. If you are an organization administrator add the dataset from the organization's home page.
+            Only a sysadmin user can set the dataset visibility to public.
           {% endtrans %}
         </span>
       </div>

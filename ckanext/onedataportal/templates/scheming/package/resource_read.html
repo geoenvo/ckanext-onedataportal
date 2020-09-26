@@ -112,7 +112,7 @@
           {%- endfor -%}
         {%- endblock -%}
         {% for key, value in h.format_resource_items(res.items()) %}
-          <tr class="toggle-more"><th scope="row">{{ key }}</th><td>{{ value }}</td></tr>
+          <tr class="toggle-more"><th scope="row">{{ key }}{% if key == 'spatial metadata' %} ({{ _('JSON string') }}){% endif %}</th><td>{{ value }}</td></tr>
         {% endfor %}
       </tbody>
     </table>

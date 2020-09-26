@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 import logging
 
@@ -71,8 +71,8 @@ class OnedataportalPlugin(p.SingletonPlugin):
     # IResourceController
 
     def _data_dict_is_dataset(self, data_dict):
-        '''Check if data_dict is a dataset
-        '''
+        """Check if data_dict is a dataset.
+        """
         #log.debug('>>>>>>> _data_dict_is_dataset')
         return (
             u'creator_user_id' in data_dict
@@ -81,21 +81,21 @@ class OnedataportalPlugin(p.SingletonPlugin):
             or data_dict.get(u'type') == u'dataset')
 
     def _resource_is_zip_shapefile(self, resource):
-        '''Check if uploaded resource is a zipped file and format is shp
-        '''
-        if resource.get(u'format', u'').lower() == 'shp' and resource.get(u'url', u'').endswith('zip'):
+        """Check if an uploaded resource is a zipped file and format is set to shp.
+        """
+        if resource.get(u'format', u'').lower() == 'shp' and resource.get(u'url', u'').lower().endswith('zip'):
             return True
         return False
 
     def before_create(self, context, data_dict):
-        '''
-        '''
+        """IResourceController hook method.
+        """
         log.debug('>>>>>>> BEFORE_CREATE')
         return data_dict
 
     def after_create(self, context, data_dict):
-        '''Hook called after saving a new dataset resource
-        '''
+        """IResourceController hook method called after saving a new dataset resource.
+        """
         log.debug('>>>>>>> AFTER_CREATE')
         is_dataset = self._data_dict_is_dataset(data_dict)
 
@@ -116,15 +116,15 @@ class OnedataportalPlugin(p.SingletonPlugin):
             pass
 
     def before_update(self, context, current_resource, updated_resource):
-        '''Hook called before updating an existing dataset resource
-        '''
+        """IResourceController hook method called before updating an existing dataset resource.
+        """
         log.debug('>>>>>>> HOOK BEFORE_UPDATE')
         #log.debug(updated_resource)
         return updated_resource
 
     def after_update(self, context, data_dict):
-        '''Hook called after updating an existing dataset resource
-        '''
+        """IResourceController hook method called after updating an existing dataset resource.
+        """
         log.debug('>>>>>>> HOOK AFTER_UPDATE')
         # data_dict is resource
         #log.debug(data_dict)

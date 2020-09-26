@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 import logging
 
@@ -9,8 +9,8 @@ log = logging.getLogger(__name__)
 
 
 def enqueue_job(*args, **kwargs):
-    '''Enqueue an asynchronous job to RQ
-    '''
+    """Enqueue an asynchronous job to RQ.
+    """
     try:
         return t.enqueue_job(*args, **kwargs)
     except AttributeError:
@@ -18,6 +18,14 @@ def enqueue_job(*args, **kwargs):
         return enqueue_job_legacy(*args, **kwargs)
 
 def save_shapefile_metadata(resource):
+    """Read a zipped shapefile resource and save the metadata from the .qmd file.
+    
+    Args:
+        resource: a resource dict object.
+    
+    The XML metadata in the .qmd file is converted to a JSON string and saved in the 'spatial_metadata'
+    resource field.
+    """
     log.debug('>>>>>>> save_shapefile_metadata')
     import json
     from io import BytesIO

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 
 import logging
 
@@ -7,8 +7,10 @@ log = logging.getLogger(__name__)
 
 
 def allowed_users_convert(key, data, errors, context):
-    '''Reimplemented from ckanext-privatedatasets
-    '''
+    """Reimplemented function from ckanext-privatedatasets.
+    
+    Required for the 'allowed_users_autocomplete' ckanext-scheming preset.
+    """
     import six
     from itertools import count
     #log.debug(data)

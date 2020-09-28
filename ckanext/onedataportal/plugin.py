@@ -4,6 +4,7 @@ import logging
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as t
+from ckan.common import config
 
 from ckanext.onedataportal.helpers import (
     add_time,
@@ -21,6 +22,7 @@ from ckanext.onedataportal.helpers import (
 from ckanext.onedataportal.jobs import (
     enqueue_job,
     save_shapefile_metadata,
+    convert_shpz_shapefile,
 )
 from ckanext.onedataportal.converters import allowed_users_convert
 
@@ -109,10 +111,12 @@ class OnedataportalPlugin(p.SingletonPlugin):
             # data_dict is resource
             #log.debug(data_dict)
             if self._resource_is_zip_shapefile(data_dict):
-                #log.debug('resource file is zip shapefile')
+                convert_shpz = config.get('ckan.onedataportal.convert_shpz', False)
                 # 20200924 disable async due to infinite job loop
                 #enqueue_job(save_shapefile_metadata, [data_dict])
                 save_shapefile_metadata(data_dict)
+                if convert_shpz:
+                    convert_shpz_shapefile(data_dict)
             pass
 
     def before_update(self, context, current_resource, updated_resource):
@@ -137,15 +141,22 @@ class OnedataportalPlugin(p.SingletonPlugin):
             del context['_save_shapefile_metadata']
             return
 
+        if context.get('_convert_shpz_shapefile'):
+            del context['_convert_shpz_shapefile']
+            return
+
         if is_dataset:
             pass
         else:
             log.debug('>>>>>>> AFTER_UPDATE RESOURCE')
             if self._resource_is_zip_shapefile(data_dict):
+                convert_shpz = config.get('ckan.onedataportal.convert_shpz', False)
                 #log.debug('>>>>>>> _resource_is_zip_shapefile')
                 # 20200924 disable async due to infinite job loop
                 #enqueue_job(save_shapefile_metadata, [data_dict])
                 save_shapefile_metadata(data_dict)
+                if convert_shpz:
+                    convert_shpz_shapefile(data_dict)
             else:
                 # resource file changed from zip shapefile?
                 #log.debug('resource file changed from zip shapefile')

@@ -128,18 +128,31 @@ class OnedataportalPlugin(p.SingletonPlugin):
         log.debug('>>>>>>> HOOK AFTER_UPDATE')
         # data_dict is resource
         #log.debug(data_dict)
-        if self._resource_is_zip_shapefile(data_dict):
-            #log.debug('>>>>>>> _resource_is_zip_shapefile')
-            # 20200924 disable async due to infinite job loop
-            #enqueue_job(save_shapefile_metadata, [data_dict])
-            save_shapefile_metadata(data_dict)
+        is_dataset = self._data_dict_is_dataset(data_dict)
+
+        if context.get('_save_shapefile_metadata'):
+            # Ugly, but needed to avoid circular loops caused by the
+            # save_shapefile_metadata job calling resource_patch (which calls
+            # package_update)
+            del context['_save_shapefile_metadata']
+            return
+
+        if is_dataset:
+            pass
         else:
-            # resource file changed from zip shapefile?
-            #log.debug('resource file changed from zip shapefile')
-            spatial_metadata = data_dict.get(u'spatial_metadata', u'')
-            # since resource file changed from zip shapefile, clear existing spatial_metadata resource field
-            if spatial_metadata:
-                #log.debug('found existing spatial_metadata')
-                context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name']}
-                resource_data = {'id': data_dict['id'], 'spatial_metadata': ''}
-                t.get_action('resource_patch')(context, resource_data)
+            log.debug('>>>>>>> AFTER_UPDATE RESOURCE')
+            if self._resource_is_zip_shapefile(data_dict):
+                #log.debug('>>>>>>> _resource_is_zip_shapefile')
+                # 20200924 disable async due to infinite job loop
+                #enqueue_job(save_shapefile_metadata, [data_dict])
+                save_shapefile_metadata(data_dict)
+            else:
+                # resource file changed from zip shapefile?
+                #log.debug('resource file changed from zip shapefile')
+                spatial_metadata = data_dict.get(u'spatial_metadata', u'')
+                # since resource file changed from zip shapefile, clear existing spatial_metadata resource field
+                if spatial_metadata:
+                    #log.debug('found existing spatial_metadata')
+                    context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_shapefile_metadata': True}
+                    resource_data = {'id': data_dict['id'], 'spatial_metadata': ''}
+                    t.get_action('resource_patch')(context, resource_data)

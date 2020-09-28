@@ -59,6 +59,9 @@ def save_shapefile_metadata(resource):
                             log.error(e)
                         break
         else:
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #log.debug(resource_file)
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             with ZipFile(resource_file, 'r') as zf:
                 for item in zf.namelist():
                     if item.lower().endswith('qmd'):
@@ -74,7 +77,7 @@ def save_shapefile_metadata(resource):
             spatial_metadata = json.dumps(spatial_metadata)
             # save in resource's spatial_metadata field
             #log.debug(t.get_action('get_site_user')({'ignore_auth': True})['name'])
-            context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name']}
+            context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_shapefile_metadata': True}
             resource_data = {'id': resource['id'], 'spatial_metadata': spatial_metadata}
             t.get_action('resource_patch')(context, resource_data)
     except Exception as e:

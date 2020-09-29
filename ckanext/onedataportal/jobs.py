@@ -84,13 +84,13 @@ def save_shapefile_metadata(resource):
         log.error(e)
 
 def convert_shpz_shapefile(resource):
-    """Read a zipped shapefile resource and remove the Z-values if it is a PointZ, PolyLineZ, PolygonZ, or MultiPointZ.
+    """Read a zipped shapefile resource and remove the Z/M-values if it is a PointZ/M, PolyLineZ/M, PolygonZ/M, or MultiPointZ/M.
     
     Args:
         resource: a resource dict object.
     
-    The original resource file upload is replaced with the converted shapefile. The Z-values need to be removed since
-    CKAN's ckanext-geoview SHP viewer does not support shapefiles with Z-values.
+    The original resource file upload is replaced with the converted shapefile. The Z/M-values need to be removed since
+    CKAN's ckanext-geoview SHP viewer does not support shapefiles with Z/M-values.
     """
     log.debug('>>>>>>> convert_shpz_shapefile')
     import ckan.lib.uploader as uploader
@@ -110,11 +110,19 @@ def convert_shpz_shapefile(resource):
     SHP_POLYLINEZ = 13
     SHP_POLYGONZ = 15
     SHP_MULTIPOINTZ = 18
+    SHP_POINTM = 21
+    SHP_POLYLINEM = 23
+    SHP_POLYGONM = 25
+    SHP_MULTIPOINTM = 28
     SHP_MAP_Z_TO_NORMAL = {
         SHP_POINTZ: SHP_POINT,
         SHP_POLYLINEZ: SHP_POLYLINE,
         SHP_POLYGONZ: SHP_POLYGON,
-        SHP_MULTIPOINTZ: SHP_MULTIPOINT
+        SHP_MULTIPOINTZ: SHP_MULTIPOINT,
+        SHP_POINTM: SHP_POINT,
+        SHP_POLYLINEM: SHP_POLYLINE,
+        SHP_POLYGONM: SHP_POLYGON,
+        SHP_MULTIPOINTM: SHP_MULTIPOINT
     }
 
     try:
@@ -123,7 +131,12 @@ def convert_shpz_shapefile(resource):
             upload = uploader.get_resource_uploader(resource)
             if isinstance(upload, uploader.ResourceUpload):
                 resource_file = upload.get_path(resource[u'id'])
-        if resource_file:
+        # a converted shapefile will have 'shapefile converted from' substring in its description
+        shapefile_already_converted = False
+        if 'shapefile converted from' in resource[u'description']:
+            shapefile_already_converted = True
+        # do not reprocess shapefiles that are already converted
+        if resource_file and not shapefile_already_converted:
             with zipfile.ZipFile(resource_file, 'r') as zip_input:
                 temp_extract_dir = tempfile.mkdtemp()
                 # Extract all the contents of zip file to temporary directory
@@ -134,11 +147,11 @@ def convert_shpz_shapefile(resource):
                     shp_read = shapefile.Reader(shp_extracted_path[0])
                     output_shp_filename = os.path.basename(shp_extracted_path[0])
                     if shp_read.shapeType in SHP_MAP_Z_TO_NORMAL.keys():
-                        #log.debug('CONVERTING: "{}" shapefile from Z type to normal shapefile'.format(output_shp_filename))
+                        #log.debug('CONVERTING: "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
                         temp_output_dir = os.path.join(temp_extract_dir, 'converted')
                         shp_write = shapefile.Writer(os.path.join(temp_output_dir, output_shp_filename))
                         original_shapetype = shp_read.shapeTypeName
-                        # convert z shapefile to non z type
+                        # convert z shapefiles to non z type, also m shapefiles
                         if shp_read.shapeType == SHP_POINTZ:
                             shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_POINTZ]
                         elif shp_read.shapeType == SHP_POLYLINEZ:
@@ -147,6 +160,14 @@ def convert_shpz_shapefile(resource):
                             shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_POLYGONZ]
                         elif shp_read.shapeType == SHP_MULTIPOINTZ:
                             shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_MULTIPOINTZ]
+                        elif shp_read.shapeType == SHP_POINTM:
+                            shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_POINTM]
+                        elif shp_read.shapeType == SHP_POLYLINEM:
+                            shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_POLYLINEM]
+                        elif shp_read.shapeType == SHP_POLYGONM:
+                            shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_POLYGONM]
+                        elif shp_read.shapeType == SHP_MULTIPOINTM:
+                            shp_write.shapeType = SHP_MAP_Z_TO_NORMAL[SHP_MULTIPOINTM]
                         new_shapetype = shp_write.shapeTypeName
                         # copy shapefile
                         shp_write.fields = shp_read.fields[1:]
@@ -178,22 +199,42 @@ def convert_shpz_shapefile(resource):
                                 for file_to_zip in files_to_zip:
                                     zip_output.write(file_to_zip, os.path.basename(file_to_zip))
                             context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_convert_shpz_shapefile': True}
-                            with open(output_zip_shp_path, 'rb') as f:
+                            # create a resource file copy of the original PointZ/M, PolyLineZ/M, PolygonZ/M, MultiPointZ/M upload but in zip format
+                            with open(resource_file, 'rb') as finput:
                                 upload = cgi.FieldStorage()
-                                upload.filename = getattr(f, 'name', 'data')
-                                upload.file = f
+                                #upload.filename = getattr(finput, 'name', 'data')
+                                upload.filename = os.path.basename(resource[u'url']) # use original upload filename
+                                upload.file = finput
+                                resource_data = {
+                                    'package_id': resource[u'package_id'],
+                                    'name': resource[u'name'],
+                                    'description': '{} (original {} shapefile)'.format(resource[u'description'], original_shapetype),
+                                    'upload': upload
+                                }
+                                t.get_action('resource_create')(context, resource_data)
+                            # replace uploaded original resource file
+                            with open(output_zip_shp_path, 'rb') as foutput:
+                                upload = cgi.FieldStorage()
+                                upload.filename = getattr(foutput, 'name', 'data')
+                                upload.file = foutput
                                 resource_data = {
                                     'id': resource[u'id'],
                                     'description': '{} (shapefile converted from {} to {})'.format(resource[u'description'], original_shapetype, new_shapetype),
                                     'upload': upload
                                 }
                                 t.get_action('resource_patch')(context, resource_data)
-                            #log.debug('SUCCESS: converted "{}" shapefile from Z type to normal shapefile'.format(output_shp_filename))
+                            #log.debug('SUCCESS: converted "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
                     else:
-                        #log.debug('ERROR: "{}" shapefile is not a Z type'.format(output_shp_filename))
+                        #log.debug('ERROR: "{}" shapefile is not a Z/M type'.format(output_shp_filename))
                         pass
                 else:
-                    #log.debug('ERROR: found more than 1 extracted .shp file in "{}"'.format(temp_extract_dir))
+                    #log.debug('ERROR: found more than 1 .shp file extracted in "{}"'.format(temp_extract_dir))
                     pass
+                # finally delete the temp_extract_dir
+                try:
+                    if os.path.exists(temp_extract_dir):
+                        shutil.rmtree(temp_extract_dir)
+                except Exception as e:
+                    log.error(e)
     except Exception as e:
         log.error(e)

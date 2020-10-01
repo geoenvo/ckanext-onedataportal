@@ -44,6 +44,7 @@ def save_shapefile_metadata(resource):
             resource_file = resource.get(u'url')
         #log.debug(resource_file)
         spatial_metadata = None
+        spatial_metadata_iso_19115 = None
         # resource_file can be a URL or path to local file
         if resource_file.startswith('http') or resource_file.startswith('https'):
             response = requests.get(resource_file)
@@ -52,33 +53,74 @@ def save_shapefile_metadata(resource):
                 zf = ZipFile(BytesIO(response.content))
                 for item in zf.namelist():
                     if item.lower().endswith('qmd'):
-                        qgis_metadata = zf.open(item).read()
+                        shp_metadata_file = zf.open(item).read()
                         try:
-                            spatial_metadata = xmltodict.parse(qgis_metadata)
+                            metadata_dict = xmltodict.parse(shp_metadata_file)
+                            # check if this is a QGIS metadata
+                            if 'qgis' in metadata_dict:
+                                #log.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! QGIS metadata found')
+                                spatial_metadata = metadata_dict
                         except Exception as e:
                             log.error(e)
-                        break
+                    elif item.lower().endswith('xml'):
+                        shp_metadata_file = zf.open(item).read()
+                        try:
+                            metadata_dict = xmltodict.parse(shp_metadata_file)
+                            # check if this is a ISO 19115 metadata
+                            if 'gmd:MD_Metadata' in metadata_dict:
+                                if 'gmd:metadataStandardName' in metadata_dict['gmd:MD_Metadata']:
+                                    if 'ISO 19115' in metadata_dict['gmd:MD_Metadata']['gmd:metadataStandardName']['gco:CharacterString']:
+                                        #log.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ISO 19115 metadata found')
+                                        spatial_metadata_iso_19115 = metadata_dict
+                        except Exception as e:
+                            log.error(e)
         else:
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            #log.debug(resource_file)
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             with ZipFile(resource_file, 'r') as zf:
                 for item in zf.namelist():
                     if item.lower().endswith('qmd'):
-                        qgis_metadata = zf.open(item).read()
+                        shp_metadata_file = zf.open(item).read()
                         try:
-                            spatial_metadata = xmltodict.parse(qgis_metadata)
+                            metadata_dict = xmltodict.parse(shp_metadata_file)
+                            # check if this is a QGIS metadata
+                            if 'qgis' in metadata_dict:
+                                #log.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ QGIS metadata found')
+                                spatial_metadata = metadata_dict
                         except Exception as e:
                             log.error(e)
-                        break
+                    elif item.lower().endswith('xml'):
+                        shp_metadata_file = zf.open(item).read()
+                        try:
+                            metadata_dict = xmltodict.parse(shp_metadata_file)
+                            # check if this is a ISO 19115 metadata
+                            if 'gmd:MD_Metadata' in metadata_dict:
+                                if 'gmd:metadataStandardName' in metadata_dict['gmd:MD_Metadata']:
+                                    if 'ISO 19115' in metadata_dict['gmd:MD_Metadata']['gmd:metadataStandardName']['gco:CharacterString']:
+                                        #log.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ISO 19115 metadata found')
+                                        spatial_metadata_iso_19115 = metadata_dict
+                        except Exception as e:
+                            log.error(e)
+        # construct the dict of the resource to be updated
+        resource_data = {'id': resource['id']}
         if spatial_metadata:
-            #log.debug('saving spatial_metadata resource field')
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #log.debug('saving QGIS spatial_metadata')
+            #log.debug(spatial_metadata)
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             #log.debug(json.dumps(spatial_metadata, indent=4))
             spatial_metadata = json.dumps(spatial_metadata)
-            # save in resource's spatial_metadata field
+            #resource_data = {'id': resource['id'], 'spatial_metadata': spatial_metadata}
+            resource_data['spatial_metadata'] = spatial_metadata
+        if spatial_metadata_iso_19115:
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            #log.debug('saving ISO 19115 spatial_metadata_iso_19115')
+            #log.debug(spatial_metadata_iso_19115)
+            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            spatial_metadata_iso_19115 = json.dumps(spatial_metadata_iso_19115)
+            resource_data['spatial_metadata_iso_19115'] = spatial_metadata_iso_19115
+        if spatial_metadata or spatial_metadata_iso_19115:
             #log.debug(t.get_action('get_site_user')({'ignore_auth': True})['name'])
+            # save in resource's 'spatial_metadata' and 'spatial_metadata_iso_19115' fields
             context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_shapefile_metadata': True}
-            resource_data = {'id': resource['id'], 'spatial_metadata': spatial_metadata}
             t.get_action('resource_patch')(context, resource_data)
     except Exception as e:
         log.error(e)

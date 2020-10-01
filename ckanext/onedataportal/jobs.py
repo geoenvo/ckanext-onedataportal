@@ -27,13 +27,14 @@ def save_shapefile_metadata(resource):
     resource field.
     """
     log.debug('>>>>>>> save_shapefile_metadata')
+
     import json
     from io import BytesIO
     from zipfile import ZipFile
     import xmltodict
     import requests
     import ckan.lib.uploader as uploader
-    #log.debug(resource)
+
     try:
         resource_file = None
         if resource.get(u'url_type') == u'upload':
@@ -41,14 +42,12 @@ def save_shapefile_metadata(resource):
             if isinstance(upload, uploader.ResourceUpload):
                 resource_file = upload.get_path(resource[u'id'])
         if not resource_file:
-            resource_file = resource.get(u'url')
-        #log.debug(resource_file)
+            resource_file = resource[u'url']
         spatial_metadata = None
         spatial_metadata_iso_19115 = None
         # resource_file can be a URL or path to local file
         if resource_file.startswith('http') or resource_file.startswith('https'):
             response = requests.get(resource_file)
-            #log.debug(response.status_code)
             if response.status_code == requests.codes.ok:
                 zf = ZipFile(BytesIO(response.content))
                 for item in zf.namelist():
@@ -119,9 +118,10 @@ def save_shapefile_metadata(resource):
             resource_data['spatial_metadata_iso_19115'] = spatial_metadata_iso_19115
         if spatial_metadata or spatial_metadata_iso_19115:
             #log.debug(t.get_action('get_site_user')({'ignore_auth': True})['name'])
-            # save in resource's 'spatial_metadata' and 'spatial_metadata_iso_19115' fields
+            # save in resource's 'spatial_metadata' and 'spatial_metadata_iso_19115' scheming fields
             context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_shapefile_metadata': True}
             t.get_action('resource_patch')(context, resource_data)
+            log.debug('SUCCESS: saved "spatial_metadata" resource field')
     except Exception as e:
         log.error(e)
 
@@ -135,6 +135,7 @@ def convert_shpz_shapefile(resource):
     CKAN's ckanext-geoview SHP viewer does not support shapefiles with Z/M-values.
     """
     log.debug('>>>>>>> convert_shpz_shapefile')
+
     import ckan.lib.uploader as uploader
     import zipfile
     import tempfile
@@ -175,10 +176,12 @@ def convert_shpz_shapefile(resource):
                 resource_file = upload.get_path(resource[u'id'])
         # a converted shapefile will have 'shapefile converted from' substring in its description
         shapefile_already_converted = False
-        if 'shapefile converted from' in resource[u'description']:
+        if 'shapefile converted' in resource[u'description']:
             shapefile_already_converted = True
         # do not reprocess shapefiles that are already converted
-        if resource_file and not shapefile_already_converted:
+        # 20200929 remove shapefile_already_converted check since it blocks converting when a resource file is replaced
+        #if resource_file and not shapefile_already_converted:
+        if resource_file:
             with zipfile.ZipFile(resource_file, 'r') as zip_input:
                 temp_extract_dir = tempfile.mkdtemp()
                 # Extract all the contents of zip file to temporary directory
@@ -189,7 +192,7 @@ def convert_shpz_shapefile(resource):
                     shp_read = shapefile.Reader(shp_extracted_path[0])
                     output_shp_filename = os.path.basename(shp_extracted_path[0])
                     if shp_read.shapeType in SHP_MAP_Z_TO_NORMAL.keys():
-                        #log.debug('CONVERTING: "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
+                        log.debug('CONVERTING: "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
                         temp_output_dir = os.path.join(temp_extract_dir, 'converted')
                         shp_write = shapefile.Writer(os.path.join(temp_output_dir, output_shp_filename))
                         original_shapetype = shp_read.shapeTypeName
@@ -232,8 +235,7 @@ def convert_shpz_shapefile(resource):
                         files_to_zip = glob.glob(os.path.join(temp_output_dir, '*.*'))
                         output_zip_shp_path = os.path.join(temp_output_dir, os.path.basename(resource[u'url']))
                         if os.path.isfile(output_zip_shp_path):
-                            #log.debug('ERROR: output zip file "{}" already exists'.format(output_zip_shp_path))
-                            pass
+                            log.debug('ERROR: output zip file "{}" already exists'.format(output_zip_shp_path))
                         else:
                             # max zip compression level
                             with zipfile.ZipFile(output_zip_shp_path, 'w', zipfile.ZIP_DEFLATED, 9) as zip_output:
@@ -265,13 +267,11 @@ def convert_shpz_shapefile(resource):
                                     'upload': upload
                                 }
                                 t.get_action('resource_patch')(context, resource_data)
-                            #log.debug('SUCCESS: converted "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
+                            log.debug('SUCCESS: converted "{}" shapefile from Z/M type to normal shapefile'.format(output_shp_filename))
                     else:
-                        #log.debug('ERROR: "{}" shapefile is not a Z/M type'.format(output_shp_filename))
-                        pass
+                        log.debug('ERROR: "{}" shapefile is not a Z/M type'.format(output_shp_filename))
                 else:
-                    #log.debug('ERROR: found more than 1 .shp file extracted in "{}"'.format(temp_extract_dir))
-                    pass
+                    log.debug('ERROR: found more than 1 .shp file extracted in "{}"'.format(temp_extract_dir))
                 # finally delete the temp_extract_dir
                 try:
                     if os.path.exists(temp_extract_dir):

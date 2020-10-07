@@ -1,0 +1,294 @@
+{% set spatial_metadata = h.onedataportal_get_json_as_dict(data[field.field_name]) %}
+
+{# comment
+{{ data[field.field_name] }}
+endcomment #}
+
+{% if spatial_metadata and h.onedataportal_is_iso_19115_metadata(spatial_metadata) %}
+
+{% set required_identifier = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'fileIdentifier') %}
+{% set required_language = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode') %}
+{% set required_type = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode') %}
+{% set required_title = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'title') %}
+{% set required_abstract = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract') %}
+{% set required_links = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'links') %}
+{% set required_contact_name = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'individualName') %}
+{% set required_license = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'otherConstraints') %}
+{% set required_crs = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
+{% set required_extent_crs = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
+{% set required_extent_minx = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'eastBoundLongitude') %}
+{% set required_extent_maxx = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'westBoundLongitude') %}
+{% set required_extent_miny = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'southBoundLatitude') %}
+{% set required_extent_maxy = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'northBoundLatitude') %}
+
+{% if required_extent_minx == '0' %}
+  {% set required_extent_minx = False %}
+{% endif %}
+{% if required_extent_maxx == '0' %}
+  {% set required_extent_maxx = False %}
+{% endif %}
+{% if required_extent_miny == '0' %}
+  {% set required_extent_miny = False %}
+{% endif %}
+{% if required_extent_maxy == '0' %}
+  {% set required_extent_maxy = False %}
+{% endif %}
+
+{% if not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy %}
+<table class="table table-bordered">
+  <tr>
+    <th>Element</th>
+    <th>Validation</th>
+  </tr>
+  {% if not required_identifier %}
+  <tr>
+    <th style="background-color:#f2dede;">Identifier</th>
+    <td style="background-color:#f2dede;">Identifier element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_language %}
+  <tr>
+    <th style="background-color:#f2dede;">Language</th>
+    <td style="background-color:#f2dede;">Language element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_type %}
+  <tr>
+    <th style="background-color:#f2dede;">Type</th>
+    <td style="background-color:#f2dede;">Type element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_title %}
+  <tr>
+    <th style="background-color:#f2dede;">Title</th>
+    <td style="background-color:#f2dede;">Title element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_abstract %}
+  <tr>
+    <th style="background-color:#f2dede;">Abstract</th>
+    <td style="background-color:#f2dede;">Abstract element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_links %}
+  <tr>
+    <th style="background-color:#f2dede;">Links</th>
+    <td style="background-color:#f2dede;">At least one link is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_contact_name %}
+  <tr>
+    <th style="background-color:#f2dede;">Contacts</th>
+    <td style="background-color:#f2dede;">Contact name cannot be empty.</td>
+  </tr>
+  {% endif %}
+  {% if not required_license %}
+  <tr >
+    <th style="background-color:#f2dede;">Licenses</th>
+    <td style="background-color:#f2dede;">At least one license is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_crs %}
+  <tr >
+    <th style="background-color:#f2dede;">Coordinate Reference System</th>
+    <td style="background-color:#f2dede;">A valid CRS element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_extent_crs %}
+  <tr >
+    <th style="background-color:#f2dede;">Extent</th>
+    <td style="background-color:#f2dede;">A valid CRS element for the spatial extent is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy %}
+  <tr >
+    <th style="background-color:#f2dede;">Extent</th>
+    <td style="background-color:#f2dede;">A valid spatial extent is required.</td>
+  </tr>
+  {% endif %}
+</table>
+{% endif %}
+
+<table class="table table-bordered">
+  <tr>
+    <th>Element</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <th>Parent identifier</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'parentIdentifier')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Identifier</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'fileIdentifier')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Title</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'title')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Language</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Abstract</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Topic categories</th>
+    <td>
+      {% set topic_categories = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'topicCategory') %}
+      {% if topic_categories and topic_categories is iterable and topic_categories is not mapping %}
+      <ul style="padding-left:15px;">
+      {% for topic_category in topic_categories %}
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_category, 'topicCategory_code') }}</li>
+      {% endfor %}
+      </ul>
+      {% elif topic_categories and topic_categories is mapping %}
+      <ul style="padding-left:15px;">
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_categories, 'topicCategory_code') }}</li>
+      </ul>
+      {% else %}
+      -
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Licenses</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'otherConstraints')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Coordinate Reference System</th>
+    <td>
+      {% set reference_systems = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
+      {% if reference_systems and reference_systems is iterable and reference_systems is not mapping %}
+      <ul style="padding-left:15px;">
+      {% for reference_system in reference_systems %}
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(reference_system, 'referenceSystem_code') }}</li>
+      {% endfor %}
+      </ul>
+      {% elif reference_systems and reference_systems is mapping %}
+      <ul style="padding-left:15px;">
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(reference_systems, 'referenceSystem_code') }}</li>
+      </ul>
+      {% else %}
+      -
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Extent</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'westBoundLongitude')|default('-', true) }}, 
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'northBoundLatitude')|default('-', true) }}
+       : 
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'eastBoundLongitude')|default('-', true) }}, 
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'southBoundLatitude')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Contacts</th>
+    <td>
+      <ul style="padding-left:15px;">
+        <li>Name: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'individualName')|default('-', true) }}</li>
+        <li>Organisation: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'organisationName')|default('-', true) }}</li>
+        <li>Position: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'positionName')|default('-', true) }}</li>
+        <li>Voice: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'voice')|default('-', true) }}</li>
+        <li>Fax: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'facsimile')|default('-', true) }}</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Contact address</th>
+    <td>
+      {% set contactaddresses = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'address') %}
+      {% if contactaddresses and contactaddresses is iterable and contactaddresses is not mapping %}
+      <ul style="padding-left:15px;">
+        {% for contactaddress in contactaddresses %}
+        <li>
+          Contact address {{ loop.index }}
+          <ul style="padding-left:15px;">
+            <li>Address: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_deliverypoint')|default('-', true) }}</li>
+            <li>City: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_city')|default('-', true) }}</li>
+            <li>Administrative area: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_administrativearea')|default('-', true) }}</li>
+            <li>Postal code: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_postalcode')|default('-', true) }}</li>
+            <li>Country: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_country')|default('-', true) }}</li>
+            <li>Email: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddress, 'address_electronicmailaddress')|default('-', true) }}</li>
+          </ul>
+        </li>
+        {% endfor %}
+      </ul>
+      {% elif contactaddresses and contactaddresses is mapping %}
+      <ul style="padding-left:15px;">
+        <li>
+          Contact address 1
+          <ul style="padding-left:15px;">
+            <li>Address: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_deliverypoint')|default('-', true) }}</li>
+            <li>City: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_city')|default('-', true) }}</li>
+            <li>Administrative area: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_administrativearea')|default('-', true) }}</li>
+            <li>Postal code: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_postalcode')|default('-', true) }}</li>
+            <li>Country: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_country')|default('-', true) }}</li>
+            <li>Email: {{ h.onedataportal_get_iso_19115_metadata_field_value(contactaddresses, 'address_electronicmailaddress')|default('-', true) }}</li>
+          </ul>
+        </li>
+      </ul>
+      {% else %}
+      -
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Links</th>
+    <td>
+      {% set links = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'links') %}
+      {% if links and links is iterable and links is not mapping %}
+      <ul style="padding-left:15px;">
+      {% for link in links %}
+        <li>
+          Link {{ loop.index }}
+          <ul style="padding-left:15px;">
+            <li>Name: {{ h.onedataportal_get_iso_19115_metadata_field_value(link, 'link_name')|default('-', true) }}</li></li>
+            <li>Type: {{ h.onedataportal_get_iso_19115_metadata_field_value(link, 'link_type')|default('-', true) }}</li></li>
+            <li>URL: {{ h.onedataportal_get_iso_19115_metadata_field_value(link, 'link_url')|default('-', true) }}</li></li>
+            <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(link, 'link_description')|default('-', true) }}</li></li>
+          </ul>
+        </li>
+      {% endfor %}
+      </ul>
+      {% elif links and links is mapping %}
+      <ul style="padding-left:15px;">
+        <li>
+          Link 1
+          <ul style="padding-left:15px;">
+            <li>Name: {{ h.onedataportal_get_iso_19115_metadata_field_value(links, 'link_name')|default('-', true) }}</li></li>
+            <li>Type: {{ h.onedataportal_get_iso_19115_metadata_field_value(links, 'link_type')|default('-', true) }}</li></li>
+            <li>URL: {{ h.onedataportal_get_iso_19115_metadata_field_value(links, 'link_url')|default('-', true) }}</li></li>
+            <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(links, 'link_description')|default('-', true) }}</li></li>
+          </ul>
+        </li>
+      </ul>
+      {% else %}
+      -
+      {% endif %}
+    </td>
+  </tr>
+</table>
+{% endif %}

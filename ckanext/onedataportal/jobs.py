@@ -4,6 +4,11 @@ import logging
 
 import ckan.plugins.toolkit as t
 
+from ckanext.onedataportal.helpers import (
+    is_qgis_metadata,
+    is_iso_19115_metadata,
+)
+
 
 log = logging.getLogger(__name__)
 
@@ -17,17 +22,82 @@ def enqueue_job(*args, **kwargs):
         from ckanext.rq.jobs import enqueue as enqueue_job_legacy
         return enqueue_job_legacy(*args, **kwargs)
 
-def save_shapefile_metadata(resource):
-    """Read a zipped shapefile resource and save the metadata from the .qmd file.
-    
+def save_metadata_from_resource_file(resource):
+    """Save the metadata a .qmd or ISO 19115 .xml file.
+
     Args:
         resource: a resource dict object.
-    
-    The XML metadata in the .qmd file is converted to a JSON string and saved in the 'spatial_metadata'
-    resource field.
+
+    For non zipped shapefiles, the metadata file (.qmd or ISO 19115 .xml) must be uploaded
+    as a separate resource file for the dataset. The XML metadata is saved in the dataset's
+    'spatial_metadata' and 'spatial_metadata_iso_19115' scheming field.
+    """
+    log.debug('>>>>>>> save_metadata_from_resource_file')
+
+    import os
+    import json
+    import xmltodict
+    import requests
+    import ckan.lib.uploader as uploader
+
+    try:
+        resource_file = None
+        if resource.get(u'url_type') == u'upload':
+            upload = uploader.get_resource_uploader(resource)
+            if isinstance(upload, uploader.ResourceUpload):
+                resource_file = upload.get_path(resource[u'id'])
+        if not resource_file:
+            resource_file = resource[u'url']
+        spatial_metadata = None
+        spatial_metadata_iso_19115 = None
+        metadata_file = None
+        if resource_file.startswith('http') or resource_file.startswith('https'):
+            response = requests.get(resource_file)
+            if response.status_code == requests.codes.ok:
+                metadata_file = response.text
+        elif os.path.isfile(resource_file):
+            metadata_file = open(resource_file, 'r')
+        if metadata_file:
+            try:
+                metadata_dict = xmltodict.parse(metadata_file)
+                # check if this is a QGIS metadata
+                if is_qgis_metadata(metadata_dict):
+                    spatial_metadata = metadata_dict
+                # check if this is a ISO 19115 metadata
+                if is_iso_19115_metadata(metadata_dict):
+                    spatial_metadata_iso_19115 = metadata_dict
+            except Exception as e:
+                log.error(e)
+            metadata_file.close()
+        # construct the dict of the dataset to be updated
+        dataset_data = {'id': resource['package_id']}
+        if spatial_metadata:
+            spatial_metadata = json.dumps(spatial_metadata)
+            dataset_data['spatial_metadata'] = spatial_metadata
+        if spatial_metadata_iso_19115:
+            spatial_metadata_iso_19115 = json.dumps(spatial_metadata_iso_19115)
+            dataset_data['spatial_metadata_iso_19115'] = spatial_metadata_iso_19115
+        if spatial_metadata or spatial_metadata_iso_19115:
+            # save in dataset's 'spatial_metadata' and 'spatial_metadata_iso_19115' scheming fields
+            context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_metadata_from_resource_file': True}
+            t.get_action('package_patch')(context, dataset_data)
+            log.debug('SUCCESS: saved "spatial_metadata" / "spatial_metadata_iso_19115" dataset field')
+    except Exception as e:
+        log.error(e)
+
+def save_shapefile_metadata(resource):
+    """Read a zipped shapefile resource and save the metadata from the .qmd file.
+    Also looks for metadata in a ISO 19115 .xml file.
+
+    Args:
+        resource: a resource dict object.
+
+    The XML metadata in the .qmd file is converted to a JSON string and saved inthe 'spatial_metadata' resource field.
+    XML metadata from the ISO 19115 .xml file is saved in the 'spatial_metadata_iso_19115' resource scheming field.
     """
     log.debug('>>>>>>> save_shapefile_metadata')
 
+    import os
     import json
     from io import BytesIO
     from zipfile import ZipFile
@@ -45,75 +115,45 @@ def save_shapefile_metadata(resource):
             resource_file = resource[u'url']
         spatial_metadata = None
         spatial_metadata_iso_19115 = None
-        # resource_file can be a URL or path to local file
+        zf = None
         if resource_file.startswith('http') or resource_file.startswith('https'):
             response = requests.get(resource_file)
             if response.status_code == requests.codes.ok:
                 zf = ZipFile(BytesIO(response.content))
-                for item in zf.namelist():
-                    if item.lower().endswith('qmd'):
-                        shp_metadata_file = zf.open(item).read()
-                        try:
-                            metadata_dict = xmltodict.parse(shp_metadata_file)
-                            # check if this is a QGIS metadata
-                            if 'qgis' in metadata_dict:
-                                #log.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! QGIS metadata found')
-                                spatial_metadata = metadata_dict
-                        except Exception as e:
-                            log.error(e)
-                    elif item.lower().endswith('xml'):
-                        shp_metadata_file = zf.open(item).read()
-                        try:
-                            metadata_dict = xmltodict.parse(shp_metadata_file)
-                            # check if this is a ISO 19115 metadata
-                            if 'gmd:MD_Metadata' in metadata_dict:
-                                if 'gmd:metadataStandardName' in metadata_dict['gmd:MD_Metadata']:
-                                    if 'ISO 19115' in metadata_dict['gmd:MD_Metadata']['gmd:metadataStandardName']['gco:CharacterString']:
-                                        #log.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ISO 19115 metadata found')
-                                        spatial_metadata_iso_19115 = metadata_dict
-                        except Exception as e:
-                            log.error(e)
-        else:
-            with ZipFile(resource_file, 'r') as zf:
-                for item in zf.namelist():
-                    if item.lower().endswith('qmd'):
-                        shp_metadata_file = zf.open(item).read()
-                        try:
-                            metadata_dict = xmltodict.parse(shp_metadata_file)
-                            # check if this is a QGIS metadata
-                            if 'qgis' in metadata_dict:
-                                #log.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ QGIS metadata found')
-                                spatial_metadata = metadata_dict
-                        except Exception as e:
-                            log.error(e)
-                    elif item.lower().endswith('xml'):
-                        shp_metadata_file = zf.open(item).read()
-                        try:
-                            metadata_dict = xmltodict.parse(shp_metadata_file)
-                            # check if this is a ISO 19115 metadata
-                            if 'gmd:MD_Metadata' in metadata_dict:
-                                if 'gmd:metadataStandardName' in metadata_dict['gmd:MD_Metadata']:
-                                    if 'ISO 19115' in metadata_dict['gmd:MD_Metadata']['gmd:metadataStandardName']['gco:CharacterString']:
-                                        #log.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ISO 19115 metadata found')
-                                        spatial_metadata_iso_19115 = metadata_dict
-                        except Exception as e:
-                            log.error(e)
+        elif os.path.isfile(resource_file):
+            zf = ZipFile(resource_file, 'r')
+        if zf:
+            for item in zf.namelist():
+                if item.lower().endswith('qmd'):
+                    shp_metadata_file = zf.open(item).read()
+                    try:
+                        metadata_dict = xmltodict.parse(shp_metadata_file)
+                        # check if this is a QGIS metadata
+                        if is_qgis_metadata(metadata_dict):
+                            spatial_metadata = metadata_dict
+                    except Exception as e:
+                        log.error(e)
+                elif item.lower().endswith('xml'):
+                    shp_metadata_file = zf.open(item).read()
+                    try:
+                        metadata_dict = xmltodict.parse(shp_metadata_file)
+                        # check if this is a ISO 19115 metadata
+                        if is_iso_19115_metadata(metadata_dict):
+                            spatial_metadata_iso_19115 = metadata_dict
+                    except Exception as e:
+                        log.error(e)
+            zf.close()
         # construct the dict of the resource to be updated
         resource_data = {'id': resource['id']}
         if spatial_metadata:
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            #log.debug('saving QGIS spatial_metadata')
+            #log.debug('saving QGIS metadata')
             #log.debug(spatial_metadata)
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             #log.debug(json.dumps(spatial_metadata, indent=4))
             spatial_metadata = json.dumps(spatial_metadata)
-            #resource_data = {'id': resource['id'], 'spatial_metadata': spatial_metadata}
             resource_data['spatial_metadata'] = spatial_metadata
         if spatial_metadata_iso_19115:
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            #log.debug('saving ISO 19115 spatial_metadata_iso_19115')
+            #log.debug('saving ISO 19115 metadata')
             #log.debug(spatial_metadata_iso_19115)
-            #log.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
             spatial_metadata_iso_19115 = json.dumps(spatial_metadata_iso_19115)
             resource_data['spatial_metadata_iso_19115'] = spatial_metadata_iso_19115
         if spatial_metadata or spatial_metadata_iso_19115:
@@ -121,16 +161,16 @@ def save_shapefile_metadata(resource):
             # save in resource's 'spatial_metadata' and 'spatial_metadata_iso_19115' scheming fields
             context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_save_shapefile_metadata': True}
             t.get_action('resource_patch')(context, resource_data)
-            log.debug('SUCCESS: saved "spatial_metadata" resource field')
+            log.debug('SUCCESS: saved "spatial_metadata" / "spatial_metadata_iso_19115" resource field')
     except Exception as e:
         log.error(e)
 
 def convert_shpz_shapefile(resource):
     """Read a zipped shapefile resource and remove the Z/M-values if it is a PointZ/M, PolyLineZ/M, PolygonZ/M, or MultiPointZ/M.
-    
+
     Args:
         resource: a resource dict object.
-    
+
     The original resource file upload is replaced with the converted shapefile. The Z/M-values need to be removed since
     CKAN's ckanext-geoview SHP viewer does not support shapefiles with Z/M-values.
     """

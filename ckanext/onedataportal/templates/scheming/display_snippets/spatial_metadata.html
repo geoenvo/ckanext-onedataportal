@@ -34,6 +34,18 @@ endcomment #}
   {% set required_extent_maxy = False %}
 {% endif %}
 
+{% if required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy %}
+<table class="table table-bordered">
+  <tr>
+    <th>Element</th>
+    <th>Validation</th>
+  </tr>
+  <tr>
+    <td class="text-center" colspan="2" style="background-color:#dff0d8;">Metadata passed validation.</td>
+  </tr>
+</table>
+{% endif %}
+
 {% if not required_identifier or not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy %}
 <table class="table table-bordered">
   <tr>

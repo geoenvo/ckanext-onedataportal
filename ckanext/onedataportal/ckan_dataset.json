@@ -91,7 +91,7 @@
     },
     {
       "field_name": "spatial_metadata_iso_19115",
-      "label": "ISO 19115 geospatial metadata",
+      "label": "ISO 19139 geospatial metadata",
       "preset": "hidden_in_form",
       "display_snippet": "spatial_metadata_iso_19115.html"
     },
@@ -127,7 +127,7 @@
     },
     {
       "field_name": "spatial_metadata_iso_19115",
-      "label": "ISO 19115 geospatial metadata",
+      "label": "ISO 19139 geospatial metadata",
       "preset": "hidden_in_form",
       "display_snippet": "spatial_metadata_iso_19115.html"
     },

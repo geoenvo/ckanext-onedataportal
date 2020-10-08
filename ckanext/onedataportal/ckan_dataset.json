@@ -91,7 +91,7 @@
     },
     {
       "field_name": "spatial_metadata_iso_19115",
-      "label": "ISO 19139 geospatial metadata",
+      "label": "ISO 19139:2007 XML specification for geospatial metadata (ISO 19115:2003 / SNI ISO 19115:2012 metadata)",
       "preset": "hidden_in_form",
       "display_snippet": "spatial_metadata_iso_19115.html"
     },
@@ -127,7 +127,7 @@
     },
     {
       "field_name": "spatial_metadata_iso_19115",
-      "label": "ISO 19139 geospatial metadata",
+      "label": "ISO 19139:2007 XML specification for geospatial metadata (ISO 19115:2003 / SNI ISO 19115:2012 metadata)",
       "preset": "hidden_in_form",
       "display_snippet": "spatial_metadata_iso_19115.html"
     },

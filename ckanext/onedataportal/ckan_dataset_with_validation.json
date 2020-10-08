@@ -88,6 +88,18 @@
       "display_property": "dc:contributor",
       "display_snippet": "email.html",
       "display_email_name_field": "maintainer"
+    },
+    {
+      "field_name": "spatial_metadata_iso_19115",
+      "label": "ISO 19139:2007 XML specification for geospatial metadata (ISO 19115:2003 / SNI ISO 19115:2012 metadata)",
+      "preset": "hidden_in_form",
+      "display_snippet": "spatial_metadata_iso_19115.html"
+    },
+    {
+      "field_name": "spatial_metadata",
+      "label": "QGIS geospatial metadata",
+      "preset": "hidden_in_form",
+      "display_snippet": "spatial_metadata.html"
     }
   ],
   "resource_fields": [
@@ -112,6 +124,18 @@
       "label": "Format",
       "preset": "resource_format_autocomplete",
       "help_text": "This will be guessed automatically. Leave blank if you wish"
+    },
+    {
+      "field_name": "spatial_metadata_iso_19115",
+      "label": "ISO 19139:2007 XML specification for geospatial metadata (ISO 19115:2003 / SNI ISO 19115:2012 metadata)",
+      "preset": "hidden_in_form",
+      "display_snippet": "spatial_metadata_iso_19115.html"
+    },
+    {
+      "field_name": "spatial_metadata",
+      "label": "QGIS geospatial metadata",
+      "preset": "hidden_in_form",
+      "display_snippet": "spatial_metadata.html"
     },
     {
       "field_name": "allow_download",
@@ -161,12 +185,6 @@
       "field_name": "validation_timestamp",
       "label": "Validation timestamp",
       "preset": "hidden_in_form"
-    },
-    {
-      "field_name": "spatial_metadata",
-      "label": "Spatial metadata",
-      "preset": "hidden_in_form",
-      "display_snippet": "spatial_metadata.html"
     }
   ]
 }

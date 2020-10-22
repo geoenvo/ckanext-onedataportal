@@ -21,6 +21,9 @@ endcomment #}
 {% set required_extent_miny = h.onedataportal_get_qgis_metadata_field_value(spatial_metadata, 'miny') %}
 {% set required_extent_maxy = h.onedataportal_get_qgis_metadata_field_value(spatial_metadata, 'maxy') %}
 
+{# 20101015 disable license check #}
+{% set required_license = True %}
+
 {% if required_extent_minx == '0' %}
   {% set required_extent_minx = False %}
 {% endif %}

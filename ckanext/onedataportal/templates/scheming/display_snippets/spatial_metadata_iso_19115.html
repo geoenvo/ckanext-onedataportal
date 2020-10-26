@@ -20,6 +20,7 @@ endcomment #}
 {% set required_extent_maxx = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'westBoundLongitude') %}
 {% set required_extent_miny = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'southBoundLatitude') %}
 {% set required_extent_maxy = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'northBoundLatitude') %}
+{% set required_data_quality = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dataQualityInfo') %}
 
 {# 20101015 disable license check #}
 {% set required_license = True %}
@@ -37,7 +38,7 @@ endcomment #}
   {% set required_extent_maxy = False %}
 {% endif %}
 
-{% if required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy %}
+{% if required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy and required_data_quality %}
 <table class="table table-bordered">
   <tr>
     <th>Element</th>
@@ -49,7 +50,7 @@ endcomment #}
 </table>
 {% endif %}
 
-{% if not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy %}
+{% if not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy or not required_data_quality %}
 <table class="table table-bordered">
   <tr>
     <th>Element</th>
@@ -119,6 +120,12 @@ endcomment #}
   <tr >
     <th style="background-color:#f2dede;">Extent</th>
     <td style="background-color:#f2dede;">A valid spatial extent is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_data_quality %}
+  <tr >
+    <th style="background-color:#f2dede;">Data quality</th>
+    <td style="background-color:#f2dede;">Data quality information is required.</td>
   </tr>
   {% endif %}
 </table>
@@ -303,6 +310,112 @@ endcomment #}
       {% else %}
       -
       {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Data quality</th>
+    <td>
+      <ul style="padding-left:15px;">
+        <li>Scope: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'DQ_ScopeCode')|default('-', true) }}</li>
+        <li>Scope description: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'DQ_ScopeDescription')|default('-', true) }}</li>
+        <li>
+          Lineage
+          <ul style="padding-left:15px;">
+            <li>Statement: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'DQ_LineageStatement')|default('-', true) }}</li>
+            <li>
+              Source
+              {% set dq_sources = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'DQ_Source') %}
+              {% if dq_sources and dq_sources is iterable and dq_sources is not mapping %}
+              <ul style="padding-left:15px;">
+                {% for dq_source in dq_sources %}
+                <li>
+                  Source {{ loop.index }}
+                  <ul style="padding-left:15px;">
+                    <li>Title: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_source, 'DQ_Source_Title')|default('-', true) }}</li>
+                    <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_source, 'DQ_Source_Description')|default('-', true) }}</li>
+                    <li>Responsible party name: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_source, 'DQ_Source_OrganisationName')|default('-', true) }}</li>
+                    <li>Role: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_source, 'DQ_Source_Role')|default('-', true) }}</li>
+                    <li>Other details: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_source, 'DQ_Source_OtherDetails')|default('-', true) }}</li>
+                  </ul>
+                </li>
+                {% endfor %}
+              </ul>
+              {% elif dq_sources and dq_sources is mapping %}
+              <ul style="padding-left:15px;">
+                <li>
+                  Source 1
+                  <ul style="padding-left:15px;">
+                    <li>Title: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_sources, 'DQ_Source_Title')|default('-', true) }}</li>
+                    <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_sources, 'DQ_Source_Description')|default('-', true) }}</li>
+                    <li>Responsible party name: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_sources, 'DQ_Source_OrganisationName')|default('-', true) }}</li>
+                    <li>Role: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_sources, 'DQ_Source_Role')|default('-', true) }}</li>
+                    <li>Other details: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_sources, 'DQ_Source_OtherDetails')|default('-', true) }}</li>
+                  </ul>
+                </li>
+              </ul>
+              {% else %}
+              -
+              {% endif %}
+            </li>
+            <li>
+              Process steps
+              {% set dq_processsteps = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'DQ_ProcessStep') %}
+              {% if dq_processsteps and dq_processsteps is iterable and dq_processsteps is not mapping %}
+              <ul style="padding-left:15px;">
+                {% for dq_processstep in dq_processsteps %}
+                <li>
+                  Process step {{ loop.index }}
+                  <ul style="padding-left:15px;">
+                    <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processstep, 'DQ_ProcessStep_Description')|default('-', true) }}</li>
+                    <li>Date time: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processstep, 'DQ_ProcessStep_DateTime')|default('-', true) }}</li>
+                    <li>Processor name: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processstep, 'DQ_ProcessStep_OrganisationName')|default('-', true) }}</li>
+                    <li>Role: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processstep, 'DQ_ProcessStep_Role')|default('-', true) }}</li>
+                  </ul>
+                </li>
+                {% endfor %}
+              </ul>
+              {% elif dq_processsteps and dq_processsteps is mapping %}
+              <ul style="padding-left:15px;">
+                <li>
+                  Process step 1
+                  <ul style="padding-left:15px;">
+                    <li>Description: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processsteps, 'DQ_ProcessStep_Description')|default('-', true) }}</li>
+                    <li>Date time: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processsteps, 'DQ_ProcessStep_DateTime')|default('-', true) }}</li>
+                    <li>Processor name: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processsteps, 'DQ_ProcessStep_OrganisationName')|default('-', true) }}</li>
+                    <li>Role: {{ h.onedataportal_get_iso_19115_metadata_field_value(dq_processsteps, 'DQ_ProcessStep_Role')|default('-', true) }}</li>
+                  </ul>
+                </li>
+              </ul>
+              {% else %}
+              -
+              {% endif %}
+            </li>
+          </ul>
+        </li>
+        <!--
+        <li>
+          Report
+          <ul style="padding-left:15px;">
+            <li>
+              Completeness
+              <ul style="padding-left:15px;">
+                <li>Title:</li>
+                <li>Explanation:</li>
+                <li>Pass:</li>
+              </ul>
+            </li>
+            <li>
+              Absolute external position accuracy
+              <ul style="padding-left:15px;">
+                <li>Title:</li>
+                <li>Explanation:</li>
+                <li>Pass:</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        -->
+      </ul>
     </td>
   </tr>
 </table>

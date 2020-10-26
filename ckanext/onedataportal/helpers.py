@@ -383,6 +383,45 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
         elif field_name == 'link_description':
             link_dict = metadata_dict
             field_value = link_dict['gmd:CI_OnlineResource']['gmd:description']['gco:CharacterString']
+        elif field_name == 'dataQualityInfo':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']
+        elif field_name == 'DQ_ScopeCode':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:scope']['gmd:DQ_Scope']['gmd:level']['gmd:MD_ScopeCode']['@codeListValue']
+        elif field_name == 'DQ_ScopeDescription':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:scope']['gmd:DQ_Scope']['gmd:levelDescription']['gmd:MD_ScopeDescription']['gmd:other']['gco:CharacterString']
+        elif field_name == 'DQ_LineageStatement':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:statement']['gco:CharacterString']
+        elif field_name == 'DQ_Source':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:source']
+        elif field_name == 'DQ_Source_Title':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:title']['gco:CharacterString']
+        elif field_name == 'DQ_Source_Description':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:description']['gco:CharacterString']
+        elif field_name == 'DQ_Source_OrganisationName':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:citedResponsibleParty']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'DQ_Source_Role':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:citedResponsibleParty']['gmd:CI_ResponsibleParty']['gmd:role']['gmd:CI_RoleCode']['@codeListValue']
+        elif field_name == 'DQ_Source_OtherDetails':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:otherCitationDetails']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:processStep']
+        elif field_name == 'DQ_ProcessStep_Description':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:description']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep_DateTime':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:dateTime']['gco:DateTime']
+        elif field_name == 'DQ_ProcessStep_OrganisationName':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:processor']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep_Role':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:processor']['gmd:CI_ResponsibleParty']['gmd:role']['gmd:CI_RoleCode']['@codeListValue']
         return field_value
     except Exception as e:
         log.warn('Error reading ISO 19115 metadata dict for field: {}'.format(field_name))

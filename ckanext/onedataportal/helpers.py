@@ -111,6 +111,15 @@ def navlink3_name():
     value = config.get('ckan.onedataportal.navlink3_name', 'Link 3')
     return value
 
+
+def sysadmin_disable_create_dataset():
+    """Return setting to disable dataset creation for Sysadmin user, if setting is not set return False.
+    """
+    from ckan.common import config
+    value = config.get('ckan.onedataportal.sysadmin_disable_create_dataset', False)
+    return value
+
+
 def _json2dict_or_empty(value):
     """Try to parse a JSON string and return as dict object.
     """

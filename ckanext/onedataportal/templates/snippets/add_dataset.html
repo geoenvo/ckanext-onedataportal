@@ -3,7 +3,16 @@
 {% set dataset_type = dataset_type if dataset_type else 'dataset' %}
 
 {% if group %}
+    {% if h.check_access('sysadmin') and h.onedataportal_sysadmin_disable_create_dataset() %}
+    <span class="info-block info-inline">
+      <i class="fa fa-info-circle"></i>
+      {% trans %}
+        Adding Dataset is disabled for Sysadmin user.
+      {% endtrans %}
+    </span>
+    {% else %}
     {% link_for _('Add Dataset'), controller='package', action='new', group=group, class_='btn btn-primary', icon='plus-square' %}
+    {% endif %}
 {% else %}
     {% if h.check_access('sysadmin') and h.onedataportal_sysadmin_disable_create_dataset() %}
     <span class="info-block info-inline">

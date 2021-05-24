@@ -429,7 +429,7 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
         elif field_name == 'link_description':
             link_dict = metadata_dict
             field_value = link_dict['gmd:CI_OnlineResource']['gmd:description']['gco:CharacterString']
-        elif field_name == 'dataQualityInfo':
+        elif field_name == 'dataQualityInfo': # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']
         elif field_name == 'DQ_ScopeCode':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:scope']['gmd:DQ_Scope']['gmd:level']['gmd:MD_ScopeCode']['@codeListValue']

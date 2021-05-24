@@ -44,7 +44,7 @@ endcomment #}
 {% set required_contact = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact') %}
 {% set required_datestamp = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dateStamp') %}
 
-{# 20101015 disable checking nonmandatory metadata #}
+{# 20210524 disable checking nonmandatory metadata #}
 {% set required_identifier = True %}
 {% set required_language = True %}
 {% set required_type = True %}
@@ -57,7 +57,6 @@ endcomment #}
 {% set required_extent_maxx = True %}
 {% set required_extent_miny = True %}
 {% set required_extent_maxy = True %}
-{% set required_data_quality = True %}
 
 {% if required_date and required_language2 and required_topiccategory and required_contact and required_datestamp and required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy and required_data_quality %}
 <table class="table table-bordered">

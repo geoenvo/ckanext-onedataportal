@@ -320,19 +320,56 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString']
         elif field_name == 'parentIdentifier':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:parentIdentifier']['gco:CharacterString']
-        elif field_name == 'title':
+        elif field_name == 'title': # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:title']['gco:CharacterString']
         elif field_name == 'MD_ScopeCode': # type
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:hierarchyLevel']['gmd:MD_ScopeCode']['@codeListValue']
         elif field_name == 'LanguageCode': # language
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']['gmd:LanguageCode']['@codeListValue']
-        elif field_name == 'topicCategory': # ISO topic categories
+        elif field_name == 'language': # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']
+        elif field_name == 'language_CharacterString':
+            language_dict = metadata_dict
+            field_value = language_dict['gco:CharacterString']
+        elif field_name == 'date': # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:date']
+        elif field_name == 'date_date':
+            date_dict = metadata_dict
+            field_value = date_dict['gmd:CI_Date']['gmd:date']['gco:Date']
+        elif field_name == 'date_datetype':
+            date_dict = metadata_dict
+            field_value = date_dict['gmd:CI_Date']['gmd:dateType']['gmd:CI_DateTypeCode']['#text']
+        elif field_name == 'topicCategory': # MANDATORY CatMDEdit, ISO topic categories
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:topicCategory']
         elif field_name == 'topicCategory_code':
             topiccategory_dict = metadata_dict
             field_value = topiccategory_dict['gmd:MD_TopicCategoryCode']
-        elif field_name == 'abstract':
+        elif field_name == 'abstract': # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:abstract']['gco:CharacterString']
+        elif field_name == 'contact': # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']
+        elif field_name == 'contact_individualName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:individualName']['gco:CharacterString']
+        elif field_name == 'contact_organisationName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'contact_positionName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:positionName']['gco:CharacterString']
+        elif field_name == 'contact_addressDeliveryPoint':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:deliveryPoint']['gco:CharacterString']
+        elif field_name == 'contact_addressAdministrativeArea':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:administrativeArea']['gco:CharacterString']
+        elif field_name == 'contact_addressCity':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:city']['gco:CharacterString']
+        elif field_name == 'contact_addressPostalCode':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:postalCode']['gco:CharacterString']
+        elif field_name == 'contact_addressCountry':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:country']['gco:CharacterString']
+        elif field_name == 'contact_addressElectronicMailAddress':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:electronicMailAddress']['gco:CharacterString']
+        elif field_name == 'dateStamp': # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']
+        elif field_name == 'dateStamp_date':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']['gco:Date']
         elif field_name == 'otherConstraints': # license
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:resourceConstraints']['gmd:MD_LegalConstraints']['gmd:otherConstraints']['gco:CharacterString']
         elif field_name == 'referenceSystemInfo': # coordinate reference systems

@@ -9,8 +9,8 @@ endcomment #}
 {% set required_identifier = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'fileIdentifier') %}
 {% set required_language = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode') %}
 {% set required_type = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode') %}
-{% set required_title = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'title') %}
-{% set required_abstract = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract') %}
+
+
 {% set required_links = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'links') %}
 {% set required_contact_name = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'individualName') %}
 {% set required_license = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'otherConstraints') %}
@@ -21,9 +21,6 @@ endcomment #}
 {% set required_extent_miny = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'southBoundLatitude') %}
 {% set required_extent_maxy = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'northBoundLatitude') %}
 {% set required_data_quality = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dataQualityInfo') %}
-
-{# 20101015 disable license check #}
-{% set required_license = True %}
 
 {% if required_extent_minx == '0' %}
   {% set required_extent_minx = False %}
@@ -38,7 +35,31 @@ endcomment #}
   {% set required_extent_maxy = False %}
 {% endif %}
 
-{% if required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy and required_data_quality %}
+{# 20210524 CatMDEdit mandatory metadata #}
+{% set required_title = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'title') %}
+{% set required_date = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'date') %}
+{% set required_language2 = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'language') %}
+{% set required_topiccategory = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'topicCategory') %}
+{% set required_abstract = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract') %}
+{% set required_contact = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact') %}
+{% set required_datestamp = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dateStamp') %}
+
+{# 20101015 disable checking nonmandatory metadata #}
+{% set required_identifier = True %}
+{% set required_language = True %}
+{% set required_type = True %}
+{% set required_links = True %}
+{% set required_contact_name = True %}
+{% set required_license = True %}
+{% set required_crs = True %}
+{% set required_extent_crs = True %}
+{% set required_extent_minx = True %}
+{% set required_extent_maxx = True %}
+{% set required_extent_miny = True %}
+{% set required_extent_maxy = True %}
+{% set required_data_quality = True %}
+
+{% if required_date and required_language2 and required_topiccategory and required_contact and required_datestamp and required_identifier and required_language and required_type and required_title and required_abstract and required_links and required_contact_name and required_license and required_crs and required_extent_crs and required_extent_minx and required_extent_maxx and required_extent_miny and required_extent_maxy and required_data_quality %}
 <table class="table table-bordered">
   <tr>
     <th>Element</th>
@@ -50,7 +71,7 @@ endcomment #}
 </table>
 {% endif %}
 
-{% if not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy or not required_data_quality %}
+{% if not required_date or not required_language2 or not required_topiccategory or not required_contact or not required_datestamp or not required_identifier or not required_language or not required_type or not required_title or not required_abstract or not required_links or not required_contact_name or not required_license or not required_crs or not required_extent_crs or not required_extent_minx or not required_extent_maxx or not required_extent_miny or not required_extent_maxy or not required_data_quality %}
 <table class="table table-bordered">
   <tr>
     <th>Element</th>
@@ -80,10 +101,40 @@ endcomment #}
     <td style="background-color:#f2dede;">Title element is required.</td>
   </tr>
   {% endif %}
+  {% if not required_date %}
+  <tr>
+    <th style="background-color:#f2dede;">Reference Date</th>
+    <td style="background-color:#f2dede;">Reference date element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_language2 %}
+  <tr>
+    <th style="background-color:#f2dede;">Language</th>
+    <td style="background-color:#f2dede;">Language element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_topiccategory %}
+  <tr>
+    <th style="background-color:#f2dede;">Topic Category</th>
+    <td style="background-color:#f2dede;">Topic category element is required.</td>
+  </tr>
+  {% endif %}
   {% if not required_abstract %}
   <tr>
     <th style="background-color:#f2dede;">Abstract</th>
     <td style="background-color:#f2dede;">Abstract element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_contact %}
+  <tr>
+    <th style="background-color:#f2dede;">Contact</th>
+    <td style="background-color:#f2dede;">Contact element is required.</td>
+  </tr>
+  {% endif %}
+  {% if not required_datestamp %}
+  <tr>
+    <th style="background-color:#f2dede;">Date stamp</th>
+    <td style="background-color:#f2dede;">Date stamp element is required.</td>
   </tr>
   {% endif %}
   {% if not required_links %}
@@ -155,21 +206,33 @@ endcomment #}
     </td>
   </tr>
   <tr>
-    <th>Type</th>
+    <th>Reference date</th>
     <td>
-      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode')|default('-', true) }}
+      {% set reference_dates = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'date') %}
+      {% if reference_dates and reference_dates is iterable and reference_dates is not mapping %}
+      <ul style="padding-left:15px;">
+      {% for reference_date in reference_dates %}
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(reference_date, 'date_date') }} ({{ h.onedataportal_get_iso_19115_metadata_field_value(reference_date, 'date_datetype') }})</li>
+      {% endfor %}
+      </ul>
+      {% else %}
+      -
+      {% endif %}
     </td>
   </tr>
   <tr>
     <th>Language</th>
     <td>
-      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode')|default('-', true) }}
-    </td>
-  </tr>
-  <tr>
-    <th>Abstract</th>
-    <td>
-      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract')|default('-', true) }}
+      {% set languages = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'language') %}
+      {% if languages and languages is iterable and languages is not mapping %}
+      <ul style="padding-left:15px;">
+      {% for language in languages %}
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(language, 'language_CharacterString')|default('-', true) }}</li>
+      {% endfor %}
+      </ul>
+      {% else %}
+      -
+      {% endif %}
     </td>
   </tr>
   <tr>
@@ -179,18 +242,60 @@ endcomment #}
       {% if topic_categories and topic_categories is iterable and topic_categories is not mapping %}
       <ul style="padding-left:15px;">
       {% for topic_category in topic_categories %}
-        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_category, 'topicCategory_code') }}</li>
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_category, 'topicCategory_code')|default('-', true) }}</li>
       {% endfor %}
       </ul>
       {% elif topic_categories and topic_categories is mapping %}
       <ul style="padding-left:15px;">
-        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_categories, 'topicCategory_code') }}</li>
+        <li>{{ h.onedataportal_get_iso_19115_metadata_field_value(topic_categories, 'topicCategory_code')|default('-', true) }}</li>
       </ul>
       {% else %}
       -
       {% endif %}
     </td>
   </tr>
+  <tr>
+    <th>Abstract</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'abstract')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Point of contact</th>
+    <td>
+      <ul style="padding-left:15px;">
+        <li>Individual name: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_individualName')|default('-', true) }}</li>
+        <li>Organisation name: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_organisationName')|default('-', true) }}</li>
+        <li>Position name: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_positionName')|default('-', true) }}</li>
+        <li>Delivery point: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressDeliveryPoint')|default('-', true) }}</li>
+        <li>Administrative area: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressAdministrativeArea')|default('-', true) }}</li>
+        <li>City: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressCity')|default('-', true) }}</li>
+        <li>Postal code: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressPostalCode')|default('-', true) }}</li>
+        <li>Country: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressCountry')|default('-', true) }}</li>
+        <li>E-mail: {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'contact_addressElectronicMailAddress')|default('-', true) }}</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>Date stamp</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dateStamp_date')|default('-', true) }}
+    </td>
+  </tr>
+  <tr>
+    <th>Type</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode')|default('-', true) }}
+    </td>
+  </tr>
+  <!--
+  <tr>
+    <th>Language</th>
+    <td>
+      {{ h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode')|default('-', true) }}
+    </td>
+  </tr>
+  -->
   <tr>
     <th>Licenses</th>
     <td>

@@ -8,6 +8,14 @@ log = logging.getLogger(__name__)
 
 def add_time(dt, weeks=0, days=0, hours=0, minutes=0, seconds=0):
     """Return a new datetime after timedelta.
+
+    Args:
+        dt: the datetime object to add the timedelta to.
+        weeks: week integer to add.
+        days: days integer to add.
+        hours: hours integer to add.
+        minutes: minutes integer to add.
+        seconds: seconds integer to add.
     """
     from datetime import timedelta
     from datetime import datetime
@@ -16,8 +24,13 @@ def add_time(dt, weeks=0, days=0, hours=0, minutes=0, seconds=0):
         dt = datetime.strptime(dt, '%Y-%m-%d %H:%M:%S.%f')
     return dt + timedelta(weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
 
+
 def naive_to_utc(dt, is_dst=None):
     """Convert a naive datetime to utc datetime.
+
+    Args:
+        dt: a datetime string.
+        is_dst: indicate datetime as daylight saving time.
     """
     from datetime import datetime
     import six
@@ -35,6 +48,7 @@ def naive_to_utc(dt, is_dst=None):
     local_dt = local.localize(dt, is_dst=is_dst)
     return local_dt.astimezone(pytz.utc)
 
+
 def geoportal_url():
     """Return string value of the geoportal url, the value must be a valid url or path.
     """
@@ -47,12 +61,14 @@ def geoportal_url():
             return False
     return value
 
+
 def geoportal_name():
     """Return string value of the geoportal name, if empty return default value.
     """
     from ckan.common import config
     value = config.get('ckan.onedataportal.geoportal_name', 'Geoportal')
     return value
+
 
 def navlink1_url():
     """Return string value of the navlink1 url, the value must be a valid url or path.
@@ -66,12 +82,14 @@ def navlink1_url():
             return False
     return value
 
+
 def navlink1_name():
     """Return string value of the navlink1 name, if empty return default value.
     """
     from ckan.common import config
     value = config.get('ckan.onedataportal.navlink1_name', 'Link 1')
     return value
+
 
 def navlink2_url():
     """Return string value of the navlink2 url, the value must be a valid url or path.
@@ -85,12 +103,14 @@ def navlink2_url():
             return False
     return value
 
+
 def navlink2_name():
     """Return string value of the navlink2 name, if empty return default value.
     """
     from ckan.common import config
     value = config.get('ckan.onedataportal.navlink2_name', 'Link 2')
     return value
+
 
 def navlink3_url():
     """Return string value of the navlink3 url, the value must be a valid url or path.
@@ -103,6 +123,7 @@ def navlink3_url():
         else:
             return False
     return value
+
 
 def navlink3_name():
     """Return string value of the navlink3 name, if empty return default value.
@@ -122,6 +143,9 @@ def sysadmin_disable_create_dataset():
 
 def _json2dict_or_empty(value):
     """Try to parse a JSON string and return as dict object.
+
+    Args:
+        value: a JSON string.
     """
     import json
     json_dict = {}
@@ -134,9 +158,13 @@ def _json2dict_or_empty(value):
     #log.debug(json.dumps(json_dict, indent=4))
     return (json_dict)
 
+
 def get_json_as_dict(value):
     """Template helper function.
-    
+
+    Args:
+        value: a JSON string or dict.
+
     Returns the value as a dictionary. If if is already
     a dictionary, the original value is returned. If it is
     a json dump, it will be parsed into a dictionary. Otherwise
@@ -148,8 +176,12 @@ def get_json_as_dict(value):
     else:
         return(_json2dict_or_empty(value))
 
+
 def is_qgis_metadata(metadata_dict):
     """Check if the metadata dict parsed from QMD XML is QGIS metadata format.
+
+    Args:
+        metadata_dict: dict object of QGIS metadata fields.
     """
     try:
         if 'qgis' in metadata_dict:
@@ -161,8 +193,13 @@ def is_qgis_metadata(metadata_dict):
     log.debug('Metadata dict format is not QGIS metadata')
     return False
 
+
 def get_qgis_metadata_field_value(metadata_dict, field_name):
     """Get the value of a QGIS metadata field.
+
+    Args:
+        metadata_dict: dict object of QGIS metadata fields.
+        field_name: unique string that maps to a particular metadata field.
     """
     field_value = None
     try:
@@ -298,8 +335,12 @@ def get_qgis_metadata_field_value(metadata_dict, field_name):
         log.warn('Error reading QGIS metadata dict for field: {}'.format(field_name))
         return None
 
+
 def is_iso_19115_metadata(metadata_dict):
     """Check if the metadata dict parsed from XML is ISO 19115 metadata format.
+
+    Args:
+        metadata_dict: dict object of ISO 19115 metadata fields.
     """
     try:
         if 'ISO 19115' in metadata_dict['gmd:MD_Metadata']['gmd:metadataStandardName']['gco:CharacterString']:
@@ -311,8 +352,13 @@ def is_iso_19115_metadata(metadata_dict):
     log.debug('Metadata dict format is not ISO 19115 metadata')
     return False
 
+
 def get_iso_19115_metadata_field_value(metadata_dict, field_name):
     """Get the value of a ISO 19115 metadata field.
+
+    Args:
+        metadata_dict: dict object of ISO 19115 metadata fields.
+        field_name: unique string that maps to a particular metadata field.
     """
     field_value = None
     try:
@@ -472,3 +518,33 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
     except Exception as e:
         log.warn('Error reading ISO 19115 metadata dict for field: {}'.format(field_name))
         return None
+
+
+def validate_iso_19115_metadata(metadata_dict):
+    """Validate ISO 19115 metadata for mandatory fields.
+
+    Args:
+        metadata_dict: dict object of ISO 19115 metadata fields.
+
+    The following metadata field_name(s) are mandatory (see MANDATORY comments in get_iso_19115_metadata_field_value() function):
+        - title
+        - date
+        - language
+        - topicCategory
+        - abstract
+        - contact
+        - dateStamp
+        - dataQualityInfo
+    """
+    pass_validation = False
+    title = get_iso_19115_metadata_field_value(metadata_dict, 'title')
+    date = get_iso_19115_metadata_field_value(metadata_dict, 'date')
+    language = get_iso_19115_metadata_field_value(metadata_dict, 'language')
+    topicCategory = get_iso_19115_metadata_field_value(metadata_dict, 'topicCategory')
+    abstract = get_iso_19115_metadata_field_value(metadata_dict, 'abstract')
+    contact = get_iso_19115_metadata_field_value(metadata_dict, 'contact')
+    dateStamp = get_iso_19115_metadata_field_value(metadata_dict, 'dateStamp')
+    dataQualityInfo = get_iso_19115_metadata_field_value(metadata_dict, 'dataQualityInfo')
+    if title and date and language and topicCategory and abstract and contact and dateStamp and dataQualityInfo:
+        pass_validation = True
+    return pass_validation

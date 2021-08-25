@@ -22,6 +22,7 @@ def enqueue_job(*args, **kwargs):
         from ckanext.rq.jobs import enqueue as enqueue_job_legacy
         return enqueue_job_legacy(*args, **kwargs)
 
+
 def save_metadata_from_resource_file(resource):
     """Save the metadata a .qmd or ISO 19115 .xml file.
 
@@ -85,6 +86,7 @@ def save_metadata_from_resource_file(resource):
     except Exception as e:
         log.error(e)
 
+
 def save_shapefile_metadata(resource):
     """Read a zipped shapefile resource and save the metadata from the .qmd file.
     Also looks for metadata in a ISO 19115 .xml file.
@@ -92,7 +94,7 @@ def save_shapefile_metadata(resource):
     Args:
         resource: a resource dict object.
 
-    The XML metadata in the .qmd file is converted to a JSON string and saved inthe 'spatial_metadata' resource field.
+    The XML metadata in the .qmd file is converted to a JSON string and saved in the 'spatial_metadata' resource field.
     XML metadata from the ISO 19115 .xml file is saved in the 'spatial_metadata_iso_19115' resource scheming field.
     """
     log.debug('>>>>>>> save_shapefile_metadata')
@@ -164,6 +166,7 @@ def save_shapefile_metadata(resource):
             log.debug('SUCCESS: saved "spatial_metadata" / "spatial_metadata_iso_19115" resource field')
     except Exception as e:
         log.error(e)
+
 
 def convert_shpz_shapefile(resource):
     """Read a zipped shapefile resource and remove the Z/M-values if it is a PointZ/M, PolyLineZ/M, PolygonZ/M, or MultiPointZ/M.

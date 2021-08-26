@@ -2,6 +2,8 @@
 
 import logging
 
+import ckan.plugins.toolkit as t
+
 
 log = logging.getLogger(__name__)
 
@@ -138,6 +140,7 @@ def sysadmin_disable_create_dataset():
     """
     from ckan.common import config
     value = config.get('ckan.onedataportal.sysadmin_disable_create_dataset', False)
+    value = t.asbool(value)
     return value
 
 

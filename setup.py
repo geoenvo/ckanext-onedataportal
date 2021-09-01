@@ -21,11 +21,11 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com//ckanext-onedataportal',
+    url='https://github.com/geoenvo/ckanext-onedataportal',
 
     # Author details
-    author='''''',
-    author_email='''''',
+    author='''Geo Enviro Omega''',
+    author_email='''services@geo.co.id''',
 
     # Choose your license
     license='AGPL',
@@ -84,6 +84,9 @@ setup(
 
         [babel.extractors]
         ckan = ckan.lib.extract:extract_ckan
+        
+        [paste.paster_command]
+        pycsw = ckanext.onedataportal.commands:Pycsw
     ''',
 
     # If you are changing from the default layout of your extension, you may

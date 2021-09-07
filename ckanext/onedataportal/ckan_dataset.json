@@ -100,18 +100,6 @@
       "label": "QGIS geospatial metadata",
       "preset": "hidden_in_form",
       "display_snippet": "spatial_metadata.html"
-    },
-    {
-      "field_name": "wms_url",
-      "label": "WMS URL",
-      "preset": "hidden_in_form",
-      "display_snippet": "link.html"
-    },
-    {
-      "field_name": "wfs_url",
-      "label": "WFS URL",
-      "preset": "hidden_in_form",
-      "display_snippet": "link.html"
     }
   ],
   "resource_fields": [

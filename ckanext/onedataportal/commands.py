@@ -74,33 +74,118 @@ class Pycsw(CkanCommand):
         config.read(abs_path)
         return config
 
-    def _add_url_metadata(self, spatial_metadata_dict, url, protocol):
+    def _add_url_metadata(self, spatial_metadata_dict, url, protocol, name):
         """
         
         Args:
             spatial_metadata_dict: dict structure of the spatial metadata.
             url: string URL to add as gmd:URL element.
             protocol: string of the URL's protocol (e.g. OGC:WMS, OGC:WFS).
+            name: string of resource's name.
         
         Returns:
             The spatial_metadata_dict with the added gmd:URL element.
         """
+        if 'gmd:distributionInfo' not in spatial_metadata_dict['gmd:MD_Metadata']:
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo'] = {}
+        if 'gmd:MD_Distribution' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']:
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution'] = {}
+        if 'gmd:transferOptions' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']:
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions'] = []
         transferOptions = spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']
+        # append ?service=wms or ?service=wfs so resource format is detected properly as wms/wfs by ckanext-spatial CSW harvester
+        resource_url = url
+        if protocol == 'OGC:WMS':
+            if not resource_url.endswith('?service=wms'):
+                resource_url = "{}{}".format(resource_url, '?service=wms')
+        if protocol == 'OGC:WFS':
+            if not resource_url.endswith('?service=wfs'):
+                resource_url = "{}{}".format(resource_url, '?service=wfs')
         urlDict = {
             'gmd:MD_DigitalTransferOptions': {
                 'gmd:onLine': {
                     'gmd:CI_OnlineResource': {
                         'gmd:linkage': {
-                            'gmd:URL': url
+                            'gmd:URL': resource_url
                         },
                         'gmd:protocol': {
                             'gco:CharacterString': protocol
+                        },
+                        'gmd:name': {
+                            'gco:CharacterString': name
                         }
                     }
                 }
             }
         }
         transferOptions.append(urlDict)
+        """
+        # override distributionFormat with WMS
+        if 'gmd:distributionFormat' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']:
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat'] = {}
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat'] = {
+                'gmd:MD_Format': {
+                    'gmd:name': {
+                        'gco:CharacterString': ''
+                    },
+                    'gmd:version': {
+                        'gco:CharacterString': ''
+                    }
+                }
+            }
+        if protocol == 'OGC:WMS':
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']['gmd:MD_Format']['gmd:name']['gco:CharacterString'] = 'WMS'
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']['gmd:MD_Format']['gmd:version']['gco:CharacterString'] = '1.3.0'
+        """
+         # override existing distributionFormat with WMS
+        if 'gmd:distributionFormat' in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']:
+            distributionFormat = spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']
+            if isinstance(distributionFormat, dict):
+                spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat'] = {}
+                spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat'] = {
+                    'gmd:MD_Format': {
+                        'gmd:name': {
+                            'gco:CharacterString': ''
+                        },
+                        'gmd:version': {
+                            'gco:CharacterString': ''
+                        }
+                    }
+                }
+                spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']['gmd:MD_Format']['gmd:name']['gco:CharacterString'] = 'WMS'
+                spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']['gmd:MD_Format']['gmd:version']['gco:CharacterString'] = '1.3.0'
+        # if distributionFormat is not set, initialize as list of formats
+        if 'gmd:distributionFormat' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']:
+            spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat'] = []
+        distributionFormat = spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:distributionFormat']
+        if protocol == 'OGC:WMS':
+            # SDP Oskari Server Extension WMS version defaults to 1.3.0
+            formatDict = {
+                'gmd:MD_Format': {
+                    'gmd:name': {
+                        'gco:CharacterString': 'WMS'
+                    },
+                    'gmd:version': {
+                        'gco:CharacterString': '1.3.0'
+                    }
+                }
+            }
+            if isinstance(distributionFormat, list):
+                distributionFormat.append(formatDict)
+        elif protocol == 'OGC:WFS':
+            # SDP Oskari Server Extension WFS version defaults to 1.1.0
+            formatDict = {
+                'gmd:MD_Format': {
+                    'gmd:name': {
+                        'gco:CharacterString': 'WFS'
+                    },
+                    'gmd:version': {
+                        'gco:CharacterString': '1.1.0'
+                    }
+                }
+            }
+            if isinstance(distributionFormat, list):
+                distributionFormat.append(formatDict)
         #print(json.dumps(transferOptions, indent=4, sort_keys=True))
         return spatial_metadata_dict
 
@@ -139,10 +224,15 @@ class Pycsw(CkanCommand):
                 metadata_dict = json.loads(ckan_info['spatial_metadata_iso_19115'])
                 #print(json.dumps(metadata_dict, indent=4, sort_keys=True))
                 # append wms_url and wfs_url to metadata gmd:URL element
+                resource_name = ''
+                if 'resource_name' in ckan_info and ckan_info['resource_name']:
+                        resource_name = ckan_info['resource_name']
                 if 'wms_url' in ckan_info and ckan_info['wms_url']:
-                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wms_url'], 'OGC:WMS')
+                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wms_url'], 'OGC:WMS', resource_name)
                 if 'wfs_url' in ckan_info and ckan_info['wfs_url']:
-                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wfs_url'], 'OGC:WFS')
+                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wfs_url'], 'OGC:WFS', resource_name)
+                if 'resource_url' in ckan_info and ckan_info['resource_url']:
+                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['resource_url'], 'url', resource_name)
                 metadata_dict = self._append_random_string_to_identifier(metadata_dict)
                 xml = xmltodict.unparse(metadata_dict)
                 xml = bytes(bytearray(xml, encoding='utf-8'))
@@ -363,6 +453,8 @@ class Pycsw(CkanCommand):
                     resource_id = resource.get('id')
                     resource_last_modified = resource.get('last_modified')
                     resource_spatial_metadata_iso_19115 = resource.get('spatial_metadata_iso_19115')
+                    resource_name = resource.get('name')
+                    resource_url = resource.get('url')
                     wms_url = resource.get('wms_url')
                     wfs_url = resource.get('wfs_url')
                     if dataset_spatial_metadata_passes_validation and (wms_url or wfs_url):
@@ -370,6 +462,8 @@ class Pycsw(CkanCommand):
                         gathered_metadata[resource_id] = {
                             'metadata_modified': resource_last_modified,
                             'spatial_metadata_iso_19115': dataset_spatial_metadata_iso_19115,
+                            'resource_name': resource_name,
+                            'resource_url': resource_url,
                             'wms_url': wms_url,
                             'wfs_url': wfs_url
                         }
@@ -384,6 +478,8 @@ class Pycsw(CkanCommand):
                                 gathered_metadata[resource_id] = {
                                     'metadata_modified': resource_last_modified,
                                     'spatial_metadata_iso_19115': resource_spatial_metadata_iso_19115,
+                                    'resource_name': resource_name,
+                                    'resource_url': resource_url,
                                     'wms_url': wms_url,
                                     'wfs_url': wfs_url
                                 }

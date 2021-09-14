@@ -74,17 +74,18 @@ class Pycsw(CkanCommand):
         config.read(abs_path)
         return config
 
-    def _add_url_metadata(self, spatial_metadata_dict, url, protocol, name):
-        """
+    def _add_resource_metadata(self, spatial_metadata_dict, url, protocol, name, description):
+        """Add gmd:MD_DigitalTransferOptions metadata for the resource to the ISO 19115 spatial metadata dict.
         
         Args:
             spatial_metadata_dict: dict structure of the spatial metadata.
             url: string URL to add as gmd:URL element.
-            protocol: string of the URL's protocol (e.g. OGC:WMS, OGC:WFS).
-            name: string of resource's name.
+            protocol: string of the URL's protocol (e.g. OGC:WMS, OGC:WFS) to add to gmd:protocol.
+            name: string of resource's name to add to gmd:name.
+            name: string of resource's description to add to gmd:description.
         
         Returns:
-            The spatial_metadata_dict with the added gmd:URL element.
+            The spatial_metadata_dict with the added gmd:MD_DigitalTransferOptions metadata element.
         """
         if 'gmd:distributionInfo' not in spatial_metadata_dict['gmd:MD_Metadata']:
             spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo'] = {}
@@ -101,6 +102,8 @@ class Pycsw(CkanCommand):
         if protocol == 'OGC:WFS':
             if not resource_url.endswith('?service=wfs'):
                 resource_url = "{}{}".format(resource_url, '?service=wfs')
+        resource_name = name
+        resource_description = description
         urlDict = {
             'gmd:MD_DigitalTransferOptions': {
                 'gmd:onLine': {
@@ -112,7 +115,10 @@ class Pycsw(CkanCommand):
                             'gco:CharacterString': protocol
                         },
                         'gmd:name': {
-                            'gco:CharacterString': name
+                            'gco:CharacterString': resource_name
+                        },
+                        'gmd:description': {
+                            'gco:CharacterString': resource_description
                         }
                     }
                 }
@@ -225,14 +231,17 @@ class Pycsw(CkanCommand):
                 #print(json.dumps(metadata_dict, indent=4, sort_keys=True))
                 # append wms_url and wfs_url to metadata gmd:URL element
                 resource_name = ''
+                resource_description = ''
                 if 'resource_name' in ckan_info and ckan_info['resource_name']:
                         resource_name = ckan_info['resource_name']
+                if 'resource_description' in ckan_info and ckan_info['resource_description']:
+                        resource_description = ckan_info['resource_description']
                 if 'wms_url' in ckan_info and ckan_info['wms_url']:
-                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wms_url'], 'OGC:WMS', resource_name)
+                    metadata_dict = self._add_resource_metadata(metadata_dict, ckan_info['wms_url'], 'OGC:WMS', resource_name, resource_description)
                 if 'wfs_url' in ckan_info and ckan_info['wfs_url']:
-                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['wfs_url'], 'OGC:WFS', resource_name)
+                    metadata_dict = self._add_resource_metadata(metadata_dict, ckan_info['wfs_url'], 'OGC:WFS', resource_name, resource_description)
                 if 'resource_url' in ckan_info and ckan_info['resource_url']:
-                    metadata_dict = self._add_url_metadata(metadata_dict, ckan_info['resource_url'], 'url', resource_name)
+                    metadata_dict = self._add_resource_metadata(metadata_dict, ckan_info['resource_url'], 'url', resource_name, resource_description)
                 metadata_dict = self._append_random_string_to_identifier(metadata_dict)
                 xml = xmltodict.unparse(metadata_dict)
                 xml = bytes(bytearray(xml, encoding='utf-8'))
@@ -454,6 +463,7 @@ class Pycsw(CkanCommand):
                     resource_last_modified = resource.get('last_modified')
                     resource_spatial_metadata_iso_19115 = resource.get('spatial_metadata_iso_19115')
                     resource_name = resource.get('name')
+                    resource_description = resource.get('description')
                     resource_url = resource.get('url')
                     wms_url = resource.get('wms_url')
                     wfs_url = resource.get('wfs_url')
@@ -463,6 +473,7 @@ class Pycsw(CkanCommand):
                             'metadata_modified': resource_last_modified,
                             'spatial_metadata_iso_19115': dataset_spatial_metadata_iso_19115,
                             'resource_name': resource_name,
+                            'resource_description': resource_description,
                             'resource_url': resource_url,
                             'wms_url': wms_url,
                             'wfs_url': wfs_url
@@ -479,6 +490,7 @@ class Pycsw(CkanCommand):
                                     'metadata_modified': resource_last_modified,
                                     'spatial_metadata_iso_19115': resource_spatial_metadata_iso_19115,
                                     'resource_name': resource_name,
+                                    'resource_description': resource_description,
                                     'resource_url': resource_url,
                                     'wms_url': wms_url,
                                     'wfs_url': wfs_url

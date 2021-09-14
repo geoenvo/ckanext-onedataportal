@@ -470,7 +470,8 @@ class Pycsw(CkanCommand):
                     if dataset_spatial_metadata_passes_validation and (wms_url or wfs_url):
                         # spatial resource with separate ISO 19115 spatial metadata on the dataset level
                         gathered_metadata[resource_id] = {
-                            'metadata_modified': resource_last_modified,
+                            #'metadata_modified': resource_last_modified,
+                            'metadata_modified': package_metadata_modified, # use dataset's metadata_modified due to resource last_modified bug https://github.com/ckan/ckan/issues/5190
                             'spatial_metadata_iso_19115': dataset_spatial_metadata_iso_19115,
                             'resource_name': resource_name,
                             'resource_description': resource_description,
@@ -487,7 +488,8 @@ class Pycsw(CkanCommand):
                             if resource_spatial_metadata_passes_validation:
                                 # use resource id as ckan_id for pycsw record
                                 gathered_metadata[resource_id] = {
-                                    'metadata_modified': resource_last_modified,
+                                    #'metadata_modified': resource_last_modified,
+                                    'metadata_modified': package_metadata_modified, # use dataset's metadata_modified due to resource last_modified bug https://github.com/ckan/ckan/issues/5190
                                     'spatial_metadata_iso_19115': resource_spatial_metadata_iso_19115,
                                     'resource_name': resource_name,
                                     'resource_description': resource_description,

@@ -365,22 +365,22 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
     """
     field_value = None
     try:
-        if field_name == 'fileIdentifier': # identifier
+        if field_name == 'fileIdentifier':  # 20211027 MANDATORY for CSW
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString']
         elif field_name == 'parentIdentifier':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:parentIdentifier']['gco:CharacterString']
-        elif field_name == 'title': # MANDATORY CatMDEdit
+        elif field_name == 'title':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:title']['gco:CharacterString']
-        elif field_name == 'MD_ScopeCode': # type
+        elif field_name == 'MD_ScopeCode':  # type
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:hierarchyLevel']['gmd:MD_ScopeCode']['@codeListValue']
-        elif field_name == 'LanguageCode': # language
+        elif field_name == 'LanguageCode':  # language
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']['gmd:LanguageCode']['@codeListValue']
-        elif field_name == 'language': # MANDATORY CatMDEdit
+        elif field_name == 'language':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']
         elif field_name == 'language_CharacterString':
             language_dict = metadata_dict
             field_value = language_dict['gco:CharacterString']
-        elif field_name == 'date': # MANDATORY CatMDEdit
+        elif field_name == 'date':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:date']
         elif field_name == 'date_date':
             date_dict = metadata_dict
@@ -388,14 +388,14 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
         elif field_name == 'date_datetype':
             date_dict = metadata_dict
             field_value = date_dict['gmd:CI_Date']['gmd:dateType']['gmd:CI_DateTypeCode']['#text']
-        elif field_name == 'topicCategory': # MANDATORY CatMDEdit, ISO topic categories
+        elif field_name == 'topicCategory':  # MANDATORY CatMDEdit, ISO topic categories
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:topicCategory']
         elif field_name == 'topicCategory_code':
             topiccategory_dict = metadata_dict
             field_value = topiccategory_dict['gmd:MD_TopicCategoryCode']
-        elif field_name == 'abstract': # MANDATORY CatMDEdit
+        elif field_name == 'abstract':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:abstract']['gco:CharacterString']
-        elif field_name == 'contact': # MANDATORY CatMDEdit
+        elif field_name == 'contact':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']
         elif field_name == 'contact_individualName':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:individualName']['gco:CharacterString']
@@ -415,15 +415,15 @@ def get_iso_19115_metadata_field_value(metadata_dict, field_name):
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:country']['gco:CharacterString']
         elif field_name == 'contact_addressElectronicMailAddress':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:electronicMailAddress']['gco:CharacterString']
-        elif field_name == 'dateStamp': # MANDATORY CatMDEdit
+        elif field_name == 'dateStamp':  # MANDATORY CatMDEdit
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']
         elif field_name == 'dateStamp_date':
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']['gco:Date']
-        elif field_name == 'otherConstraints': # license
+        elif field_name == 'otherConstraints':  # license
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:resourceConstraints']['gmd:MD_LegalConstraints']['gmd:otherConstraints']['gco:CharacterString']
-        elif field_name == 'referenceSystemInfo': # coordinate reference systems
+        elif field_name == 'referenceSystemInfo':  # 20211027 MANDATORY for CSW, coordinate reference systems
             field_value = metadata_dict['gmd:MD_Metadata']['gmd:referenceSystemInfo']
-        elif field_name == 'referenceSystem_code':
+        elif field_name == 'referenceSystem_code':  # 20211027 MANDATORY for CSW
             referencesystem_dict = metadata_dict
             field_value = referencesystem_dict['gmd:MD_ReferenceSystem']['gmd:referenceSystemIdentifier']['gmd:RS_Identifier']['gmd:code']['gco:CharacterString']
         elif field_name == 'northBoundLatitude': # extent north maxy
@@ -530,6 +530,9 @@ def validate_iso_19115_metadata(metadata_dict):
         metadata_dict: dict object of ISO 19115 metadata fields.
 
     The following metadata field_name(s) are mandatory (see MANDATORY comments in get_iso_19115_metadata_field_value() function):
+        - fileIdentifier (20211027 MANDATORY for CSW)
+        - referenceSystemInfo (20211027 MANDATORY for CSW)
+        - referenceSystem_code (20211027 MANDATORY for CSW)
         - title
         - date
         - language
@@ -540,6 +543,14 @@ def validate_iso_19115_metadata(metadata_dict):
         - dataQualityInfo
     """
     pass_validation = False
+    fileIdentifier = get_iso_19115_metadata_field_value(metadata_dict, 'fileIdentifier')
+    referenceSystemInfo = get_iso_19115_metadata_field_value(metadata_dict, 'referenceSystemInfo')
+    referenceSystem_code = None
+    if referenceSystemInfo and isinstance(referenceSystemInfo, list) and not isinstance(referenceSystemInfo, dict):
+        for reference_system in referenceSystemInfo:
+            referenceSystem_code = get_iso_19115_metadata_field_value(reference_system, 'referenceSystem_code')
+    elif referenceSystemInfo and isinstance(referenceSystemInfo, dict):
+        referenceSystem_code = get_iso_19115_metadata_field_value(referenceSystemInfo, 'referenceSystem_code')
     title = get_iso_19115_metadata_field_value(metadata_dict, 'title')
     date = get_iso_19115_metadata_field_value(metadata_dict, 'date')
     language = get_iso_19115_metadata_field_value(metadata_dict, 'language')
@@ -548,6 +559,6 @@ def validate_iso_19115_metadata(metadata_dict):
     contact = get_iso_19115_metadata_field_value(metadata_dict, 'contact')
     dateStamp = get_iso_19115_metadata_field_value(metadata_dict, 'dateStamp')
     dataQualityInfo = get_iso_19115_metadata_field_value(metadata_dict, 'dataQualityInfo')
-    if title and date and language and topicCategory and abstract and contact and dateStamp and dataQualityInfo:
+    if fileIdentifier and referenceSystemInfo and referenceSystem_code and title and date and language and topicCategory and abstract and contact and dateStamp and dataQualityInfo:
         pass_validation = True
     return pass_validation

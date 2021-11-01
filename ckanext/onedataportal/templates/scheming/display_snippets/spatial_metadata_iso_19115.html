@@ -6,7 +6,6 @@ endcomment #}
 
 {% if spatial_metadata and h.onedataportal_is_iso_19115_metadata(spatial_metadata) %}
 
-{% set required_identifier = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'fileIdentifier') %}
 {% set required_language = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'LanguageCode') %}
 {% set required_type = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'MD_ScopeCode') %}
 
@@ -14,8 +13,6 @@ endcomment #}
 {% set required_links = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'links') %}
 {% set required_contact_name = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'individualName') %}
 {% set required_license = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'otherConstraints') %}
-{% set required_crs = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
-{% set required_extent_crs = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
 {% set required_extent_minx = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'eastBoundLongitude') %}
 {% set required_extent_maxx = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'westBoundLongitude') %}
 {% set required_extent_miny = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'southBoundLatitude') %}
@@ -35,6 +32,18 @@ endcomment #}
   {% set required_extent_maxy = False %}
 {% endif %}
 
+{# 20211027 CSW mandatory metadata #}
+{% set required_identifier = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'fileIdentifier') %}
+{% set required_crs = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'referenceSystemInfo') %}
+{% if required_crs and required_crs is iterable and required_crs is not mapping %}
+{% for reference_system in required_crs %}
+  {% set required_extent_crs = h.onedataportal_get_iso_19115_metadata_field_value(reference_system, 'referenceSystem_code') %}
+{% endfor %}
+{% elif required_crs and required_crs is mapping %}
+  {% set required_extent_crs = h.onedataportal_get_iso_19115_metadata_field_value(required_crs, 'referenceSystem_code') %}
+{% else %}
+{% endif %}
+
 {# 20210524 CatMDEdit mandatory metadata #}
 {% set required_title = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'title') %}
 {% set required_date = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'date') %}
@@ -45,14 +54,11 @@ endcomment #}
 {% set required_datestamp = h.onedataportal_get_iso_19115_metadata_field_value(spatial_metadata, 'dateStamp') %}
 
 {# 20210524 disable checking nonmandatory metadata #}
-{% set required_identifier = True %}
 {% set required_language = True %}
 {% set required_type = True %}
 {% set required_links = True %}
 {% set required_contact_name = True %}
 {% set required_license = True %}
-{% set required_crs = True %}
-{% set required_extent_crs = True %}
 {% set required_extent_minx = True %}
 {% set required_extent_maxx = True %}
 {% set required_extent_miny = True %}

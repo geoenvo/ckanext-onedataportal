@@ -359,10 +359,10 @@ class Pycsw(CkanCommand):
                 fileIdentifier = ''
                 srs = 'EPSG:32750'
                 EX_GeographicBoundingBox = None
-                westBoundLongitude = 0
-                southBoundLatitude = 0
-                eastBoundLongitude = 0
-                northBoundLatitude = 0
+                westBoundLongitude = 4668.330227406579 # xmin
+                southBoundLatitude = 8828294.224726986 # ymin
+                eastBoundLongitude = 608810.4831366882 # xmax
+                northBoundLatitude = 9277308.2635344 # ymax
                 layer_width = 768
                 layer_height = 768
                 wms_version = '1.3.0'

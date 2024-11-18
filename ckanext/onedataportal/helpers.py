@@ -542,6 +542,10 @@ def validate_iso_19115_metadata(metadata_dict):
         - dateStamp
         - dataQualityInfo
     """
+    from ckan.common import config
+    iso_19115_metadata_always_valid = config.get('ckan.onedataportal.iso_19115_metadata_always_valid', False)
+    if iso_19115_metadata_always_valid:
+        return True
     pass_validation = False
     fileIdentifier = get_iso_19115_metadata_field_value(metadata_dict, 'fileIdentifier')
     referenceSystemInfo = get_iso_19115_metadata_field_value(metadata_dict, 'referenceSystemInfo')

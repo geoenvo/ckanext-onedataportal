@@ -172,11 +172,6 @@
       "help_text": "Allow users to download the spatial resource. Yes will publish the WFS and WMS services, No will only publish the WMS service"
     },
     {
-      "field_name": "validation_options",
-      "label": "Validation options",
-      "preset": "validation_options"
-    },
-    {
       "field_name": "validation_status",
       "label": "Validation status",
       "preset": "hidden_in_form"

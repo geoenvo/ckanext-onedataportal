@@ -5,6 +5,7 @@ import logging
 import ckan.plugins as p
 import ckan.plugins.toolkit as t
 from ckan.common import config
+from ckan.lib.plugins import DefaultTranslation
 
 from ckanext.onedataportal.helpers import (
     add_time,
@@ -36,7 +37,8 @@ from ckanext.onedataportal.converters import allowed_users_convert
 log = logging.getLogger(__name__)
 
 
-class OnedataportalPlugin(p.SingletonPlugin):
+class OnedataportalPlugin(p.SingletonPlugin, DefaultTranslation):
+    p.implements(p.ITranslation)
     p.implements(p.IConfigurer)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IValidators)

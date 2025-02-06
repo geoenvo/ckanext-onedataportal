@@ -2,13 +2,18 @@ import sys
 import logging
 import datetime
 import io
+import json
 import os
 import argparse
+import random
+import string
 
 # from configparser import SafeConfigParser
 from configparser import ConfigParser
+from urllib.parse import urlparse
 
 import requests
+import xmltodict
 from lxml import etree
 
 from pycsw.core import metadata, repository, util
@@ -214,7 +219,220 @@ def get_record(context, repo, ckan_url, ckan_id, ckan_info):
     return record
 
 
-def import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
+def _add_resource_metadata(spatial_metadata_dict, url, protocol, name, description):
+    """Add gmd:MD_DigitalTransferOptions metadata for the resource to the ISO 19115 spatial metadata dict.
+
+    20211027 update: for BIG to harvest must have following structure
+        gmd:MD_Metadata (single element)
+            gmd:distributionInfo (single element)
+                gmd:MD_Distribution (single element)
+                    gmd:transferOptions (single element)
+                        gmd:MD_DigitalTransferOptions (single element)
+                            gmd:onLine (multiple elements, one for each resource)
+
+    Args:
+        spatial_metadata_dict: dict structure of the spatial metadata.
+        url: string URL to add as gmd:URL element.
+        protocol: string of the URL's protocol (e.g. OGC:WMS, OGC:WFS) to add to gmd:protocol.
+        name: string of resource's name to add to gmd:name.
+        name: string of resource's description to add to gmd:description.
+
+    Returns:
+        The spatial_metadata_dict with the added gmd:MD_DigitalTransferOptions metadata element.
+    """
+    if 'gmd:distributionInfo' not in spatial_metadata_dict['gmd:MD_Metadata']:
+        spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo'] = {}
+    if 'gmd:MD_Distribution' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']:
+        spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution'] = {}
+    if 'gmd:transferOptions' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']:
+        spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions'] = {}
+    if 'gmd:MD_DigitalTransferOptions' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']:
+        spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']['gmd:MD_DigitalTransferOptions'] = {}
+    if 'gmd:onLine' not in spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']['gmd:MD_DigitalTransferOptions']:
+        spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']['gmd:MD_DigitalTransferOptions']['gmd:onLine'] = []
+    onLine = spatial_metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']['gmd:MD_DigitalTransferOptions']['gmd:onLine']
+    # append ?service=WMS or ?service=WFS so resource format is detected properly as wms/wfs by ckanext-spatial CSW harvester
+    # 20211027 update: already set in _get_record() below
+    resource_url = url
+    if protocol == 'OGC:WMS':
+        pass
+        # if not resource_url.endswith('?service=WMS'):
+        #    resource_url = "{}{}".format(resource_url, '?service=WMS')
+    if protocol == 'OGC:WFS':
+        pass
+        # if not resource_url.endswith('?service=WFS'):
+        #    resource_url = "{}{}".format(resource_url, '?service=WFS')
+    resource_name = name
+    resource_description = description
+    urlDict = {
+        'gmd:CI_OnlineResource': {
+            'gmd:linkage': {
+                'gmd:URL': resource_url
+            },
+            'gmd:protocol': {
+                'gco:CharacterString': protocol
+            },
+            'gmd:name': {
+                'gco:CharacterString': resource_name
+            },
+            'gmd:description': {
+                'gco:CharacterString': resource_description
+            }
+        }
+    }
+    onLine.append(urlDict)
+    # print(json.dumps(onLine, indent=4, sort_keys=True))
+    return spatial_metadata_dict
+
+
+def _append_random_string_to_identifier(spatial_metadata_dict):
+    """Append a random 8 character string to the end of gmd:fileIdentifier spatial metadata element.
+
+    In cases where the spatial metadata can have the same gmd:fileIdentifier string value it is
+    neccessary to append random characters so the pycsw record has a unique identifier primary key.
+
+    Args:
+        spatial_metadata_dict: dict structure of the spatial metadata.
+
+    Returns:
+        The spatial_metadata_dict with the modified gmd:fileIdentifier element.
+    """
+    fileIdentifier = spatial_metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString']
+    fileIdentifier += '_' + ''.join(random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(8))
+    spatial_metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString'] = fileIdentifier
+    return spatial_metadata_dict
+
+
+def _get_record(context, repo, ckan_id, ckan_info):
+    """Create a pycsw record object by extracting and parsing the spatial metadata of the dataset or resource.
+
+    20211027 update: for BIG to harvest must have following structure
+        gmd:MD_Metadata (single element)
+            gmd:distributionInfo (single element)
+                gmd:MD_Distribution (single element)
+                    gmd:transferOptions (single element)
+                        gmd:MD_DigitalTransferOptions (single element)
+                            gmd:onLine (multiple elements, one for each resource)
+    it is necessary to clear existing gmd:MD_Distribution to make sure it only has
+    one gmd:transferOptions child element
+
+    Args:
+        context: pycsw context.
+        repo: connection to pycsw database repository.
+        ckan_id: the id of the dataset (package) or resource.
+        ckan_info: dict containing spatial metadata and WMS/WFS URLs info of the CKAN dataset or resource.
+
+    Returns:
+        The pycsw record with the populated spatial metadata.
+    """
+    xml = None
+    if 'spatial_metadata_iso_19115' in ckan_info and ckan_info['spatial_metadata_iso_19115']:
+        try:
+            metadata_dict = json.loads(ckan_info['spatial_metadata_iso_19115'])
+            # print(json.dumps(metadata_dict, indent=4, sort_keys=True))
+            # get mandatory fields for building full WMS/WFS URL
+            fileIdentifier = ''
+            srs = 'EPSG:32750'
+            EX_GeographicBoundingBox = None
+            westBoundLongitude = 4668.330227406579 # xmin
+            southBoundLatitude = 8828294.224726986 # ymin
+            eastBoundLongitude = 608810.4831366882 # xmax
+            northBoundLatitude = 9277308.2635344 # ymax
+            layer_width = 768
+            layer_height = 768
+            wms_version = '1.3.0'
+            wms_request = 'GetMap'
+            wms_format = 'application/openlayers'
+            wfs_version = '1.0.0'
+            wfs_request = 'GetFeature'
+            wfs_maxfeatures = 50
+            wfs_outputformat = 'SHAPE-ZIP'
+            full_wms_url = ''
+            full_wfs_url = ''
+            try:
+                fileIdentifier = metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString']
+            except Exception as e:
+                log.error(e)
+            try:
+                EX_GeographicBoundingBox = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:extent']['gmd:EX_Extent']['gmd:geographicElement']['gmd:EX_GeographicBoundingBox']
+                try:
+                    westBoundLongitude = EX_GeographicBoundingBox['gmd:westBoundLongitude']['gco:Decimal']
+                    southBoundLatitude = EX_GeographicBoundingBox['gmd:southBoundLatitude']['gco:Decimal']
+                    eastBoundLongitude = EX_GeographicBoundingBox['gmd:eastBoundLongitude']['gco:Decimal']
+                    northBoundLatitude = EX_GeographicBoundingBox['gmd:northBoundLatitude']['gco:Decimal']
+                except Exception as e:
+                    log.debug("Using default bounding box since gmd:westBoundLongitude/gmd:southBoundLatitude/gmd:eastBoundLongitude/gmd:northBoundLatitude was not found in the spatial metadata")
+            except Exception as e:
+                log.debug("Using default bounding box since gmd:EX_GeographicBoundingBox was not found in the spatial metadata")
+            try:
+                # get EPSG:32750 portion from urn:ogc:def:crs:EPSG:32750
+                srs_code = metadata_dict['gmd:MD_Metadata']['gmd:referenceSystemInfo']['gmd:MD_ReferenceSystem']['gmd:referenceSystemIdentifier']['gmd:RS_Identifier']['gmd:code']['gco:CharacterString']
+                epsg_number = re.findall( 'EPSG:(\d+)', srs_code)
+                if epsg_number:
+                    srs = "{}:{}".format('EPSG', epsg_number[0])
+            except Exception as e:
+                log.debug("Using default SRS EPSG:32750 since gmd:referenceSystemInfo was not found in the spatial metadata")
+            # get resource detail fields
+            resource_name = ''
+            resource_description = ''
+            if 'resource_name' in ckan_info and ckan_info['resource_name']:
+                    resource_name = ckan_info['resource_name']
+            if 'resource_description' in ckan_info and ckan_info['resource_description']:
+                    resource_description = ckan_info['resource_description']
+            # 20211027 update: clear gmd:MD_Distribution element loaded from spatial metadata xml
+            try:
+                if 'gmd:MD_Distribution' in metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']:
+                    # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                    # print(json.dumps(metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution'], indent=4, sort_keys=True))
+                    # print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                    metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution'] = {}
+            except Exception as e:
+                metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo'] = {}
+                metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution'] = {}
+                log.debug("Created gmd:distributionInfo element since it was not found in the spatial metadata")
+            if 'wms_url' in ckan_info and ckan_info['wms_url']:
+                # https://geoportal.balikpapan.go.id/geoserver/bappeda_shapefile_zip/wms?service=WMS&version=1.3.0&request=GetMap&layers=bappeda_shapefile_zip:Batas_Wilayah_Kecamatan_Kota_Balikpapan&styles=&bbox=469819.97146352037,9858261.694774693,502527.84720001166,9887998.93041742&width=768&height=768&srs=EPSG:32750&format=application/openlayers
+                parsed_wms_url = urlparse(ckan_info['wms_url'])
+                geoserver_wms_url = "{}://{}/{}/{}".format(parsed_wms_url.scheme, parsed_wms_url.netloc, 'geoserver', 'wms?')
+                workspace = parsed_wms_url.path.split('/')[2]
+                wms_layer = "{}:{}".format(workspace, fileIdentifier)
+                full_wms_url = "{}{}&version={}&request={}&layers={}&styles=&bbox={},{},{},{}&width={}&height={}&srs={}&format={}".format(ckan_info['wms_url'], '?service=WMS', wms_version, wms_request, wms_layer, westBoundLongitude, southBoundLatitude, eastBoundLongitude, northBoundLatitude, layer_width, layer_height, srs, wms_format)
+                # metadata_dict = _add_resource_metadata(metadata_dict, ckan_info['wms_url'], 'OGC:WMS', resource_name, resource_description)
+                metadata_dict = _add_resource_metadata(metadata_dict, geoserver_wms_url, 'OGC:WMS', wms_layer, 'ImageWMS')
+                metadata_dict = _add_resource_metadata(metadata_dict, full_wms_url, 'WWW:LINK', wms_layer, 'ImageWMS')
+            if 'wfs_url' in ckan_info and ckan_info['wfs_url']:
+                # https://geoportal.balikpapan.go.id/geoserver/bappeda_shapefile_zip/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=bappeda_shapefile_zip:Batas_Wilayah_Kecamatan_Kota_Balikpapan&maxFeatures=50&outputFormat=SHAPE-ZIP
+                parsed_wfs_url = urlparse(ckan_info['wfs_url'])
+                geoserver_wfs_url = "{}://{}/{}/{}".format(parsed_wfs_url.scheme, parsed_wfs_url.netloc, 'geoserver', 'wfs?')
+                workspace = parsed_wfs_url.path.split('/')[2]
+                wfs_layer = "{}:{}".format(workspace, fileIdentifier)
+                full_wfs_url = "{}{}&version={}&request={}&typeName={}&maxFeatures={}&outputFormat={}".format(ckan_info['wfs_url'], '?service=WFS', wfs_version, wfs_request, wfs_layer, wfs_maxfeatures, wfs_outputformat)
+                # metadata_dict = _add_resource_metadata(metadata_dict, ckan_info['wfs_url'], 'OGC:WFS', resource_name, resource_description)
+                metadata_dict = _add_resource_metadata(metadata_dict, geoserver_wfs_url, 'OGC:WFS', wfs_layer, 'RAW')
+                metadata_dict = _add_resource_metadata(metadata_dict, full_wfs_url, 'WWW:LINK', wfs_layer, 'ZIP Shapefile')
+            if 'resource_url' in ckan_info and ckan_info['resource_url']:
+                metadata_dict = _add_resource_metadata(metadata_dict, ckan_info['resource_url'], 'url', resource_name, resource_description)
+            metadata_dict = _append_random_string_to_identifier(metadata_dict)
+            xml = xmltodict.unparse(metadata_dict)
+            xml = bytes(bytearray(xml, encoding='utf-8'))
+            xml = etree.XML(xml)
+        except Exception as e:
+            log.error(e)
+            log.debug("Unable to parse JSON string to XML")
+            raise
+    try:
+        record = metadata.parse_record(context, xml, repo)[0]
+    except Exception as err:
+        log.error("Could not extract metadata from {}, Error: {}".format(ckan_id, err))
+        return
+    if not record.identifier:
+        record.identifier = ckan_id
+    record.ckan_id = ckan_id
+    record.ckan_modified = ckan_info['metadata_modified']
+    return record
+
+
+def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
     """Import spatial metadata from CKAN datasets and resources as records into the pycsw database.
 
     This method looks for ISO 19115 spatial metadata stored in the 'spatial_metadata_iso_19115'
@@ -275,16 +493,16 @@ def import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
             resource_format = resource_format.lower()
             # only process resource formats that are synced to Oskari + GeoServer
             if resource_format in synced_spatial_formats:
+                resource_id = resource.get("id")
+                resource_name = resource.get("name")
                 log.info(
-                    "Found matching synced resource format: {}".format(resource_format)
+                    "Found matching synced resource format: {} (id \"{}\" - name \"{}\")".format(resource_format, resource_id, resource_name)
                 )
                 # print(json.dumps(resource, indent=4, sort_keys=True))
-                resource_id = resource.get("id")
                 resource_last_modified = resource.get("last_modified")
                 resource_spatial_metadata_iso_19115 = resource.get(
                     "spatial_metadata_iso_19115"
                 )
-                resource_name = resource.get("name")
                 resource_description = resource.get("description")
                 resource_url = resource.get("url")
                 wms_url = resource.get("wms_url")
@@ -333,7 +551,7 @@ def import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
     log.info("Resource spatial metadata found: {}".format(count_resource_metadata))
     log.info("============================================================")
     pycsw_database = pycsw_config.get("repository", "database")
-    pycsw_table = pycsw_config.get("repository", "table", "records")
+    pycsw_table = pycsw_config.get("repository", "table", fallback="records")
     context = pycsw.core.config.StaticContext()
     repo = repository.Repository(pycsw_database, context, table=pycsw_table)
     existing_records = {}
@@ -362,7 +580,7 @@ def import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
             raise
     for ckan_id in new:
         ckan_info = gathered_metadata[ckan_id]
-        record = get_record(context, repo, ckan_id, ckan_info)
+        record = _get_record(context, repo, ckan_id, ckan_info)
         if not record:
             log.info("Skipped record {}".format(ckan_id))
             continue
@@ -374,7 +592,7 @@ def import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
             log.error("ERROR: not inserted {} Error:{}".format(ckan_id, err))
     for ckan_id in changed:
         ckan_info = gathered_metadata[ckan_id]
-        record = get_record(context, repo, ckan_id, ckan_info)
+        record = _get_record(context, repo, ckan_id, ckan_info)
         if not record:
             continue
         update_dict = dict(
@@ -481,7 +699,7 @@ if __name__ == "__main__":
         ckan_url = arg.ckan_url.rstrip("/") + "/"
         if arg.command == "load":
             # load(pycsw_config, ckan_url)
-            import_spatial_metadata_to_pycsw(pycsw_config, ckan_url)
+            _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url)
         else:
             set_keywords(arg.pycsw_config, pycsw_config, ckan_url)
     elif arg.command == "clear":

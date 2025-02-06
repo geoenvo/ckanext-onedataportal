@@ -1,3 +1,4 @@
 requests
 xmltodict
 pyshp==2.1.2
+owslib==0.28.1

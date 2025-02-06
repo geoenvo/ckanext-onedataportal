@@ -367,7 +367,7 @@ def _get_record(context, repo, ckan_id, ckan_info):
             try:
                 # get EPSG:32750 portion from urn:ogc:def:crs:EPSG:32750
                 srs_code = metadata_dict['gmd:MD_Metadata']['gmd:referenceSystemInfo']['gmd:MD_ReferenceSystem']['gmd:referenceSystemIdentifier']['gmd:RS_Identifier']['gmd:code']['gco:CharacterString']
-                epsg_number = re.findall( 'EPSG:(\d+)', srs_code)
+                epsg_number = re.findall( 'EPSG:(\\d+)', srs_code)
                 if epsg_number:
                     srs = "{}:{}".format('EPSG', epsg_number[0])
             except Exception as e:
@@ -432,6 +432,214 @@ def _get_record(context, repo, ckan_id, ckan_info):
     return record
 
 
+def get_iso_19115_metadata_field_value(metadata_dict, field_name):
+    """Get the value of a ISO 19115 metadata field.
+
+    Args:
+        metadata_dict: dict object of ISO 19115 metadata fields.
+        field_name: unique string that maps to a particular metadata field.
+    """
+    field_value = None
+    try:
+        if field_name == 'fileIdentifier':  # 20211027 MANDATORY for CSW
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:fileIdentifier']['gco:CharacterString']
+        elif field_name == 'parentIdentifier':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:parentIdentifier']['gco:CharacterString']
+        elif field_name == 'title':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:title']['gco:CharacterString']
+        elif field_name == 'MD_ScopeCode':  # type
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:hierarchyLevel']['gmd:MD_ScopeCode']['@codeListValue']
+        elif field_name == 'LanguageCode':  # language
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']['gmd:LanguageCode']['@codeListValue']
+        elif field_name == 'language':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:language']
+        elif field_name == 'language_CharacterString':
+            language_dict = metadata_dict
+            field_value = language_dict['gco:CharacterString']
+        elif field_name == 'date':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:citation']['gmd:CI_Citation']['gmd:date']
+        elif field_name == 'date_date':
+            date_dict = metadata_dict
+            field_value = date_dict['gmd:CI_Date']['gmd:date']['gco:Date']
+        elif field_name == 'date_datetype':
+            date_dict = metadata_dict
+            field_value = date_dict['gmd:CI_Date']['gmd:dateType']['gmd:CI_DateTypeCode']['#text']
+        elif field_name == 'topicCategory':  # MANDATORY CatMDEdit, ISO topic categories
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:topicCategory']
+        elif field_name == 'topicCategory_code':
+            topiccategory_dict = metadata_dict
+            field_value = topiccategory_dict['gmd:MD_TopicCategoryCode']
+        elif field_name == 'abstract':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:abstract']['gco:CharacterString']
+        elif field_name == 'contact':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']
+        elif field_name == 'contact_individualName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:individualName']['gco:CharacterString']
+        elif field_name == 'contact_organisationName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'contact_positionName':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:positionName']['gco:CharacterString']
+        elif field_name == 'contact_addressDeliveryPoint':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:deliveryPoint']['gco:CharacterString']
+        elif field_name == 'contact_addressAdministrativeArea':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:administrativeArea']['gco:CharacterString']
+        elif field_name == 'contact_addressCity':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:city']['gco:CharacterString']
+        elif field_name == 'contact_addressPostalCode':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:postalCode']['gco:CharacterString']
+        elif field_name == 'contact_addressCountry':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:country']['gco:CharacterString']
+        elif field_name == 'contact_addressElectronicMailAddress':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:contact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']['gmd:CI_Address']['gmd:electronicMailAddress']['gco:CharacterString']
+        elif field_name == 'dateStamp':  # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']
+        elif field_name == 'dateStamp_date':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dateStamp']['gco:Date']
+        elif field_name == 'otherConstraints':  # license
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:resourceConstraints']['gmd:MD_LegalConstraints']['gmd:otherConstraints']['gco:CharacterString']
+        elif field_name == 'referenceSystemInfo':  # 20211027 MANDATORY for CSW, coordinate reference systems
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:referenceSystemInfo']
+        elif field_name == 'referenceSystem_code':  # 20211027 MANDATORY for CSW
+            referencesystem_dict = metadata_dict
+            field_value = referencesystem_dict['gmd:MD_ReferenceSystem']['gmd:referenceSystemIdentifier']['gmd:RS_Identifier']['gmd:code']['gco:CharacterString']
+        elif field_name == 'northBoundLatitude': # extent north maxy
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:extent']['gmd:EX_Extent']['gmd:geographicElement']['gmd:EX_GeographicBoundingBox']['gmd:northBoundLatitude']['gco:Decimal']
+        elif field_name == 'southBoundLatitude': # extent south miny
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:extent']['gmd:EX_Extent']['gmd:geographicElement']['gmd:EX_GeographicBoundingBox']['gmd:southBoundLatitude']['gco:Decimal']
+        elif field_name == 'westBoundLongitude': # extent west maxx
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:extent']['gmd:EX_Extent']['gmd:geographicElement']['gmd:EX_GeographicBoundingBox']['gmd:westBoundLongitude']['gco:Decimal']
+        elif field_name == 'eastBoundLongitude': # extent east minx
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:extent']['gmd:EX_Extent']['gmd:geographicElement']['gmd:EX_GeographicBoundingBox']['gmd:eastBoundLongitude']['gco:Decimal']
+        elif field_name == 'individualName': # contact name
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:individualName']['gco:CharacterString']
+        elif field_name == 'organisationName': # contact organisation
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'positionName': # contact position
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:positionName']['gco:CharacterString']
+        elif field_name == 'voice': # contact voice number
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:phone']['gmd:CI_Telephone']['gmd:voice']['gco:CharacterString']
+        elif field_name == 'facsimile': # contact fax number
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:phone']['gmd:CI_Telephone']['gmd:facsimile']['gco:CharacterString']
+        elif field_name == 'address': # contact addresses
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:identificationInfo']['gmd:MD_DataIdentification']['gmd:pointOfContact']['gmd:CI_ResponsibleParty']['gmd:contactInfo']['gmd:CI_Contact']['gmd:address']
+        elif field_name == 'address_deliverypoint': # contact address
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:deliveryPoint']['gco:CharacterString']
+        elif field_name == 'address_postalcode': # contact address postal code
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:postalCode']['gco:CharacterString']
+        elif field_name == 'address_city': # contact address city
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:city']['gco:CharacterString']
+        elif field_name == 'address_administrativearea': # contact address administrative area
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:administrativeArea']['gco:CharacterString']
+        elif field_name == 'address_country': # contact address country
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:country']['gco:CharacterString']
+        elif field_name == 'address_electronicmailaddress': # contact address email
+            address_dict = metadata_dict
+            field_value = address_dict['gmd:CI_Address']['gmd:electronicMailAddress']['gco:CharacterString']
+        elif field_name == 'links':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:distributionInfo']['gmd:MD_Distribution']['gmd:transferOptions']['gmd:MD_DigitalTransferOptions']['gmd:onLine']
+        elif field_name == 'link_name':
+            link_dict = metadata_dict
+            field_value = link_dict['gmd:CI_OnlineResource']['gmd:name']['gco:CharacterString']
+        elif field_name == 'link_type':
+            link_dict = metadata_dict
+            field_value = link_dict['gmd:CI_OnlineResource']['gmd:protocol']['gco:CharacterString']
+        elif field_name == 'link_url':
+            link_dict = metadata_dict
+            field_value = link_dict['gmd:CI_OnlineResource']['gmd:linkage']['gmd:URL']
+        elif field_name == 'link_description':
+            link_dict = metadata_dict
+            field_value = link_dict['gmd:CI_OnlineResource']['gmd:description']['gco:CharacterString']
+        elif field_name == 'dataQualityInfo': # MANDATORY CatMDEdit
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']
+        elif field_name == 'DQ_ScopeCode':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:scope']['gmd:DQ_Scope']['gmd:level']['gmd:MD_ScopeCode']['@codeListValue']
+        elif field_name == 'DQ_ScopeDescription':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:scope']['gmd:DQ_Scope']['gmd:levelDescription']['gmd:MD_ScopeDescription']['gmd:other']['gco:CharacterString']
+        elif field_name == 'DQ_LineageStatement':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:statement']['gco:CharacterString']
+        elif field_name == 'DQ_Source':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:source']
+        elif field_name == 'DQ_Source_Title':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:title']['gco:CharacterString']
+        elif field_name == 'DQ_Source_Description':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:description']['gco:CharacterString']
+        elif field_name == 'DQ_Source_OrganisationName':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:citedResponsibleParty']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'DQ_Source_Role':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:citedResponsibleParty']['gmd:CI_ResponsibleParty']['gmd:role']['gmd:CI_RoleCode']['@codeListValue']
+        elif field_name == 'DQ_Source_OtherDetails':
+            dq_source_dict = metadata_dict
+            field_value = dq_source_dict['gmd:LI_Source']['gmd:sourceCitation']['gmd:CI_Citation']['gmd:otherCitationDetails']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep':
+            field_value = metadata_dict['gmd:MD_Metadata']['gmd:dataQualityInfo']['gmd:DQ_DataQuality']['gmd:lineage']['gmd:LI_Lineage']['gmd:processStep']
+        elif field_name == 'DQ_ProcessStep_Description':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:description']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep_DateTime':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:dateTime']['gco:DateTime']
+        elif field_name == 'DQ_ProcessStep_OrganisationName':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:processor']['gmd:CI_ResponsibleParty']['gmd:organisationName']['gco:CharacterString']
+        elif field_name == 'DQ_ProcessStep_Role':
+            dq_processstep_dict = metadata_dict
+            field_value = dq_processstep_dict['gmd:LI_ProcessStep']['gmd:processor']['gmd:CI_ResponsibleParty']['gmd:role']['gmd:CI_RoleCode']['@codeListValue']
+        return field_value
+    except Exception as e:
+        log.warning('Error reading ISO 19115 metadata dict for field: {}'.format(field_name))
+        return None
+
+
+def validate_iso_19115_metadata(metadata_dict):
+    """Validate ISO 19115 metadata for mandatory fields.
+
+    Args:
+        metadata_dict: dict object of ISO 19115 metadata fields.
+
+    The following metadata field_name(s) are mandatory (see MANDATORY comments in get_iso_19115_metadata_field_value() function):
+        - fileIdentifier (20211027 MANDATORY for CSW)
+        - referenceSystemInfo (20211027 MANDATORY for CSW)
+        - referenceSystem_code (20211027 MANDATORY for CSW)
+        - title
+        - date
+        - language
+        - topicCategory
+        - abstract
+        - contact
+        - dateStamp
+        - dataQualityInfo
+    """
+    pass_validation = False
+    fileIdentifier = get_iso_19115_metadata_field_value(metadata_dict, 'fileIdentifier')
+    referenceSystemInfo = get_iso_19115_metadata_field_value(metadata_dict, 'referenceSystemInfo')
+    referenceSystem_code = None
+    if referenceSystemInfo and isinstance(referenceSystemInfo, list) and not isinstance(referenceSystemInfo, dict):
+        for reference_system in referenceSystemInfo:
+            referenceSystem_code = get_iso_19115_metadata_field_value(reference_system, 'referenceSystem_code')
+    elif referenceSystemInfo and isinstance(referenceSystemInfo, dict):
+        referenceSystem_code = get_iso_19115_metadata_field_value(referenceSystemInfo, 'referenceSystem_code')
+    title = get_iso_19115_metadata_field_value(metadata_dict, 'title')
+    date = get_iso_19115_metadata_field_value(metadata_dict, 'date')
+    language = get_iso_19115_metadata_field_value(metadata_dict, 'language')
+    topicCategory = get_iso_19115_metadata_field_value(metadata_dict, 'topicCategory')
+    abstract = get_iso_19115_metadata_field_value(metadata_dict, 'abstract')
+    contact = get_iso_19115_metadata_field_value(metadata_dict, 'contact')
+    dateStamp = get_iso_19115_metadata_field_value(metadata_dict, 'dateStamp')
+    dataQualityInfo = get_iso_19115_metadata_field_value(metadata_dict, 'dataQualityInfo')
+    if fileIdentifier and referenceSystemInfo and referenceSystem_code and title and date and language and topicCategory and abstract and contact and dateStamp and dataQualityInfo:
+        pass_validation = True
+    return pass_validation
+
+
 def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
     """Import spatial metadata from CKAN datasets and resources as records into the pycsw database.
 
@@ -481,7 +689,7 @@ def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
             "spatial_metadata_iso_19115"
         )
         # check if ISO 19115 metadata passes on dataset level
-        # TODO
+        # TODO 2025 assume all metadata passes validation
         dataset_spatial_metadata_passes_validation = True
         if dataset_spatial_metadata_iso_19115:
             # ISO 19115 spatial metadata must pass validation to be synced to pycsw
@@ -507,24 +715,25 @@ def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
                 resource_url = resource.get("url")
                 wms_url = resource.get("wms_url")
                 wfs_url = resource.get("wfs_url")
-                if dataset_spatial_metadata_passes_validation and (wms_url or wfs_url):
-                    # spatial resource with separate ISO 19115 spatial metadata on the dataset level
-                    gathered_metadata[resource_id] = {
-                        #'metadata_modified': resource_last_modified,
-                        "metadata_modified": package_metadata_modified,  # use dataset's metadata_modified due to resource last_modified bug https://github.com/ckan/ckan/issues/5190
-                        "spatial_metadata_iso_19115": dataset_spatial_metadata_iso_19115,
-                        "resource_name": resource_name,
-                        "resource_description": resource_description,
-                        "resource_url": resource_url,
-                        "wms_url": wms_url,
-                        "wfs_url": wfs_url,
-                    }
-                    count_dataset_metadata += 1
+                if dataset_spatial_metadata_iso_19115:
+                    if dataset_spatial_metadata_passes_validation and (wms_url or wfs_url):
+                      # spatial resource with separate ISO 19115 spatial metadata on the dataset level
+                      gathered_metadata[resource_id] = {
+                          #'metadata_modified': resource_last_modified,
+                          "metadata_modified": package_metadata_modified,  # use dataset's metadata_modified due to resource last_modified bug https://github.com/ckan/ckan/issues/5190
+                          "spatial_metadata_iso_19115": dataset_spatial_metadata_iso_19115,
+                          "resource_name": resource_name,
+                          "resource_description": resource_description,
+                          "resource_url": resource_url,
+                          "wms_url": wms_url,
+                          "wfs_url": wfs_url,
+                      }
+                      count_dataset_metadata += 1
                 else:
                     # spatial resource with embedded ISO 19115 metadata and either WMS URL or WFS URL
                     if resource_spatial_metadata_iso_19115 and (wms_url or wfs_url):
                         # ISO 19115 spatial metadata must pass validation to be synced to pycsw
-                        # TODO
+                        # TODO 2025 assume all metadata passes validation
                         resource_spatial_metadata_passes_validation = True
                         # resource_spatial_metadata_passes_validation = validate_iso_19115_metadata(json.loads(resource_spatial_metadata_iso_19115))
                         if resource_spatial_metadata_passes_validation:

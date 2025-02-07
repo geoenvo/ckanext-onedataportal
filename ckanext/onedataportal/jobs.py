@@ -43,12 +43,12 @@ def save_metadata_from_resource_file(resource):
 
     try:
         resource_file = None
-        if resource.get(u'url_type') == u'upload':
+        if resource.get('url_type') == 'upload':
             upload = uploader.get_resource_uploader(resource)
             if isinstance(upload, uploader.ResourceUpload):
-                resource_file = upload.get_path(resource[u'id'])
+                resource_file = upload.get_path(resource['id'])
         if not resource_file:
-            resource_file = resource[u'url']
+            resource_file = resource['url']
         spatial_metadata = None
         spatial_metadata_iso_19115 = None
         metadata_file = None
@@ -109,12 +109,12 @@ def save_shapefile_metadata(resource):
 
     try:
         resource_file = None
-        if resource.get(u'url_type') == u'upload':
+        if resource.get('url_type') == 'upload':
             upload = uploader.get_resource_uploader(resource)
             if isinstance(upload, uploader.ResourceUpload):
-                resource_file = upload.get_path(resource[u'id'])
+                resource_file = upload.get_path(resource['id'])
         if not resource_file:
-            resource_file = resource[u'url']
+            resource_file = resource['url']
         spatial_metadata = None
         spatial_metadata_iso_19115 = None
         zf = None
@@ -213,13 +213,13 @@ def convert_shpz_shapefile(resource):
 
     try:
         resource_file = None
-        if resource.get(u'url_type') == u'upload':
+        if resource.get('url_type') == 'upload':
             upload = uploader.get_resource_uploader(resource)
             if isinstance(upload, uploader.ResourceUpload):
-                resource_file = upload.get_path(resource[u'id'])
+                resource_file = upload.get_path(resource['id'])
         # a converted shapefile will have 'shapefile converted from' substring in its description
         shapefile_already_converted = False
-        if 'shapefile converted' in resource[u'description']:
+        if 'shapefile converted' in resource['description']:
             shapefile_already_converted = True
         # do not reprocess shapefiles that are already converted
         # 20200929 remove shapefile_already_converted check since it blocks converting when a resource file is replaced
@@ -276,7 +276,7 @@ def convert_shpz_shapefile(resource):
                             shutil.copy2(file_to_copy, temp_output_dir)
                         # finally zip the output files
                         files_to_zip = glob.glob(os.path.join(temp_output_dir, '*.*'))
-                        output_zip_shp_path = os.path.join(temp_output_dir, os.path.basename(resource[u'url']))
+                        output_zip_shp_path = os.path.join(temp_output_dir, os.path.basename(resource['url']))
                         if os.path.isfile(output_zip_shp_path):
                             log.debug('ERROR: output zip file "{}" already exists'.format(output_zip_shp_path))
                         else:
@@ -290,12 +290,12 @@ def convert_shpz_shapefile(resource):
                             with open(resource_file, 'rb') as finput:
                                 upload = cgi.FieldStorage()
                                 #upload.filename = getattr(finput, 'name', 'data')
-                                upload.filename = os.path.basename(resource[u'url']) # use original upload filename
+                                upload.filename = os.path.basename(resource['url']) # use original upload filename
                                 upload.file = finput
                                 resource_data = {
-                                    'package_id': resource[u'package_id'],
-                                    'name': resource[u'name'],
-                                    'description': '{} (original {} shapefile)'.format(resource[u'description'], original_shapetype),
+                                    'package_id': resource['package_id'],
+                                    'name': resource['name'],
+                                    'description': '{} (original {} shapefile)'.format(resource['description'], original_shapetype),
                                     'upload': upload
                                 }
                                 t.get_action('resource_create')(context, resource_data)
@@ -305,8 +305,8 @@ def convert_shpz_shapefile(resource):
                                 upload.filename = getattr(foutput, 'name', 'data')
                                 upload.file = foutput
                                 resource_data = {
-                                    'id': resource[u'id'],
-                                    'description': '{} (shapefile converted from {} to {})'.format(resource[u'description'], original_shapetype, new_shapetype),
+                                    'id': resource['id'],
+                                    'description': '{} (shapefile converted from {} to {})'.format(resource['description'], original_shapetype, new_shapetype),
                                     'upload': upload
                                 }
                                 t.get_action('resource_patch')(context, resource_data)

@@ -57,7 +57,7 @@ def save_metadata_from_resource_file(resource):
             if response.status_code == requests.codes.ok:
                 metadata_file = response.text
         elif os.path.isfile(resource_file):
-            metadata_file = open(resource_file, 'r')
+            metadata_file = open(resource_file, 'rb')
         if metadata_file:
             try:
                 metadata_dict = xmltodict.parse(metadata_file)

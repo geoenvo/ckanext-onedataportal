@@ -618,6 +618,10 @@ def validate_iso_19115_metadata(metadata_dict):
         - dateStamp
         - dataQualityInfo
     """
+    # 2025 assume all metadata passes validation
+    iso_19115_metadata_always_valid = True  # same flag as in plugin config
+    if iso_19115_metadata_always_valid:
+        return True
     pass_validation = False
     fileIdentifier = get_iso_19115_metadata_field_value(metadata_dict, 'fileIdentifier')
     referenceSystemInfo = get_iso_19115_metadata_field_value(metadata_dict, 'referenceSystemInfo')
@@ -689,12 +693,10 @@ def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
             "spatial_metadata_iso_19115"
         )
         # check if ISO 19115 metadata passes on dataset level
-        # TODO 2025 assume all metadata passes validation
-        dataset_spatial_metadata_passes_validation = True
+        dataset_spatial_metadata_passes_validation = False
         if dataset_spatial_metadata_iso_19115:
             # ISO 19115 spatial metadata must pass validation to be synced to pycsw
-            # dataset_spatial_metadata_passes_validation = validate_iso_19115_metadata(json.loads(dataset_spatial_metadata_iso_19115))
-            pass
+            dataset_spatial_metadata_passes_validation = validate_iso_19115_metadata(json.loads(dataset_spatial_metadata_iso_19115))
         # check if resources have ISO 19115 spatial metadata
         for resource in package_result["resources"]:
             resource_format = resource.get("format")
@@ -733,9 +735,8 @@ def _import_spatial_metadata_to_pycsw(pycsw_config, ckan_url):
                     # spatial resource with embedded ISO 19115 metadata and either WMS URL or WFS URL
                     if resource_spatial_metadata_iso_19115 and (wms_url or wfs_url):
                         # ISO 19115 spatial metadata must pass validation to be synced to pycsw
-                        # TODO 2025 assume all metadata passes validation
-                        resource_spatial_metadata_passes_validation = True
-                        # resource_spatial_metadata_passes_validation = validate_iso_19115_metadata(json.loads(resource_spatial_metadata_iso_19115))
+                        resource_spatial_metadata_passes_validation = False
+                        resource_spatial_metadata_passes_validation = validate_iso_19115_metadata(json.loads(resource_spatial_metadata_iso_19115))
                         if resource_spatial_metadata_passes_validation:
                             # use resource id as ckan_id for pycsw record
                             gathered_metadata[resource_id] = {

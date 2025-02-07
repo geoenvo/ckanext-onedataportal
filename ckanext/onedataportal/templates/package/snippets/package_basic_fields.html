@@ -45,7 +45,7 @@
         <div class="form-group control-full">
           <label for="field-private" class="control-label">{{ _('Visibility') }}</label>
           <div class="controls">
-            <select id="field-private" name="private" data-module="allowed-users" class="form-control">
+            <select id="field-private" name="private" class="form-control">
               {% for option in [('True', _('Private')), ('False', _('Public'))] %}
               <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
               {% endfor %}
@@ -63,8 +63,8 @@
       <div class="form-group control-full">
         <label class="control-label">{{ _('Visibility') }}</label>
         <div class="controls">
-          <p class="form-control-static">{% if data.private|trim == 'True' %}{{ _('Private') }}{% elif data.private|trim == 'False' %}{{ _('Public') }}{% else %}{{ _('Private') }}{% endif %}</p>
-          <select id="field-private" name="private" data-module="allowed-users" class="form-control hidden" disabled>
+          <p class="form-control-plaintext">{% if data.private|trim == 'True' %}{{ _('Private') }}{% elif data.private|trim == 'False' %}{{ _('Public') }}{% else %}{{ _('Private') }}{% endif %}</p>
+          <select id="field-private" name="private" class="form-control d-none" disabled>
             {% for option in [('True', _('Private')), ('False', _('Public'))] %}
             <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
             {% endfor %}
@@ -72,7 +72,7 @@
           <span class="info-block info-inline">
             <i class="fa fa-info-circle"></i>
             {% trans %}
-              Only a sysadmin user can set the dataset visibility to public.
+              Only a Sysadmin user can set the dataset visibility to public.
             {% endtrans %}
           </span>
         </div>
@@ -103,14 +103,6 @@
     </div>
   {% endblock %}
 
-  {% set users_attrs = {'data-module': 'autocomplete', 'data-module-tags': '', 'data-module-source': '/api/2/util/user/autocomplete?q=?'} %}
-  {{ form.input('allowed_users_str', label=_('Allowed Users'), id='field-allowed_users_str', placeholder=_('Allowed Users'), value=h.get_allowed_users_str(data.allowed_users), error=errors.custom_text, classes=['control-full'], attrs=users_attrs) }}
-
-  {% if editing and h.show_acquire_url_on_edit() or not editing and h.show_acquire_url_on_create()  %}
-    {{ form.input('acquire_url', label=_('Acquire URL'), id='field-acquire_url', placeholder=_('http://example.com/acquire/'), value=data.acquire_url, error=errors.custom_text, classes=['control-medium']) }}
-  {% else %}
-      <input type="hidden" name="acquire_url" id="acquire_url" value="{{ data.acquire_url }}" />
-  {% endif %}
 
   {% if data.id and h.check_access('package_delete', {'id': data.id}) and data.state != 'active' %}
     <div class="form-group">

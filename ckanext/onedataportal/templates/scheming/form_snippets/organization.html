@@ -4,8 +4,6 @@
 
 {% block package_metadata_fields_visibility %}
 
-{% resource 'privatedatasets/allowed_users.js' %}
-
 {# if we have a default group then this wants remembering #}
 {% if data.group_id %}
   <input type="hidden" name="groups__0__id" value="{{ data.group_id }}" />
@@ -20,10 +18,10 @@
 
 {% if show_visibility_selector %}
   {% if user_is_sysadmin %}
-    <div class="form-group control-full">
+    <div class="control-group form-group control-full">
       <label for="field-private" class="control-label">{{ _('Visibility') }}</label>
       <div class="controls">
-        <select id="field-private" name="private" data-module="allowed-users" class="form-control">
+        <select id="field-private" name="private" class="form-control">
           {% for option in [('True', _('Private')), ('False', _('Public'))] %}
           <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
           {% endfor %}
@@ -31,17 +29,17 @@
         <span class="info-block info-inline">
           <i class="fa fa-info-circle"></i>
           {% trans %}
-            Private datasets can only be accessed by certain users, while public datasets can be accessed by anyone. 
+            Private datasets can only be accessed by certain users, while public datasets can be accessed by anyone.
           {% endtrans %}
         </span>
       </div>
     </div>
   {% else %}
-    <div class="form-group control-full">
+    <div class="control-group form-group control-full">
       <label class="control-label">{{ _('Visibility') }}</label>
       <div class="controls">
-        <p class="form-control-static">{% if data.private|trim == 'True' %}{{ _('Private') }}{% elif data.private|trim == 'False' %}{{ _('Public') }}{% else %}{{ _('Private') }}{% endif %}</p>
-        <select id="field-private" name="private" data-module="allowed-users" class="form-control hidden" disabled>
+        <p class="form-control-plaintext">{% if data.private|trim == 'True' %}{{ _('Private') }}{% elif data.private|trim == 'False' %}{{ _('Public') }}{% else %}{{ _('Private') }}{% endif %}</p>
+        <select id="field-private" name="private" class="form-control d-none" disabled>
           {% for option in [('True', _('Private')), ('False', _('Public'))] %}
           <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
           {% endfor %}
@@ -49,20 +47,12 @@
         <span class="info-block info-inline">
           <i class="fa fa-info-circle"></i>
           {% trans %}
-            Only a sysadmin user can set the dataset visibility to public.
+            Only a Sysadmin user can set the dataset visibility to public.
           {% endtrans %}
         </span>
       </div>
     </div>
   {% endif %}
-{% endif %}
-
-{# NOTE: ckanext-privatedatasets field 'allowed_users_str' is implemented in ckanext-scheming ckan_dataset.json #}
-
-{% if editing and h.show_acquire_url_on_edit() or not editing and h.show_acquire_url_on_create()  %}
-  {{ form.input('acquire_url', label=_('Acquire URL'), id='field-acquire_url', placeholder=_('http://example.com/acquire/'), value=data.acquire_url, error=errors.custom_text, classes=['control-medium']) }}
-{% else %}
-    <input type="hidden" name="acquire_url" id="acquire_url" value="{{ data.acquire_url }}" />
 {% endif %}
 
 {% if data.id and h.check_access('package_delete', {'id': data.id}) and data.state != 'active' %}

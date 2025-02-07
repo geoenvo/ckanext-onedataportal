@@ -1,17 +1,8 @@
 {% ckan_extends %}
 
-{% block resource_read_title %}
-  <h1 class="page-heading">{{ h.resource_display_name(res) | truncate(50) }}
-  {% if res.validation_options %}
-    {{ h.get_validation_badge(res)|safe }}
-    {% resource 'ckanext-validation/main' %}
-  {% endif %}
-  </h1>
-{% endblock %}
-
 {% block resource_actions_inner %}
   {% if h.check_access('package_update', {'id':pkg.id }) %}
-    <li>{% link_for _('Manage'), controller='package', action='resource_edit', id=pkg.name, resource_id=res.id, class_='btn btn-default', icon='wrench' %}</li>
+    <li>{% link_for _('Edit resource'), named_route=pkg.type ~ '_resource.edit', id=pkg.name, resource_id=res.id, class_='btn btn-default', icon='pencil' %}</li>
   {% endif %}
   {% if res.allow_download != 'False' %}
     {% if res.url and h.is_url(res.url) %}
@@ -28,24 +19,7 @@
             <i class="fa fa-arrow-circle-o-down"></i> {{ _('Download') }}
           {% endif %}
         </a>
-         {% block download_resource_button %}
-          {%if res.datastore_active %}
-        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-            <span class="caret"></span>
-          </button>
-        <ul class="dropdown-menu">
-          <li>
-            <a href="{{ h.url_for(controller='ckanext.datastore.controller:DatastoreController', action='dump', resource_id=res.id, bom=True) }}"
-              target="_blank"><span>CSV</span></a>
-            <a href="{{ h.url_for(controller='ckanext.datastore.controller:DatastoreController', action='dump', resource_id=res.id, format='tsv', bom=True) }}"
-              target="_blank"><span>TSV</span></a>
-            <a href="{{ h.url_for(controller='ckanext.datastore.controller:DatastoreController', action='dump', resource_id=res.id, format='json') }}"
-              target="_blank"><span>JSON</span></a>
-            <a href="{{ h.url_for(controller='ckanext.datastore.controller:DatastoreController', action='dump', resource_id=res.id, format='xml') }}"
-              target="_blank"><span>XML</span></a>
-          </li>
-        </ul>
-        {%endif%} {% endblock %}
+         {% block download_resource_button %}{% endblock %}
         </div>
       </li>
     {% endif %}
@@ -61,6 +35,8 @@
     {% endif %}
   {% endif %}
 {% endblock %}
+
+
 
 {% block resource_additional_information_inner %}
   {% if res.datastore_active %}
@@ -120,9 +96,13 @@
             {%- endif -%}
           {%- endfor -%}
         {%- endblock -%}
-        {% for key, value in h.format_resource_items(res.items()) %}
-          <tr class="toggle-more"><th scope="row">{{ key }}{% if key == 'spatial metadata' or key == 'spatial metadata iso 19115' %} ({{ _('JSON string') }}){% endif %}</th><td>{{ value }}</td></tr>
-        {% endfor %}
+        {%- block resource_more_items -%}
+          {% for key, value in h.format_resource_items(res.items()) %}
+            {% if key not in ('created', 'metadata modified', 'last modified', 'format') %}
+              <tr class="toggle-more"><th scope="row">{{ key | capitalize }}{% if key == 'spatial metadata' or key == 'spatial metadata iso 19115' %} ({{ _('JSON string') }}){% endif %}</th><td>{{ value }}</td></tr>
+            {% endif %}
+          {% endfor %}
+        {%- endblock -%}
       </tbody>
     </table>
   </div>
@@ -131,7 +111,7 @@
 {% block secondary_content %}
 
   {% block resources_list %}
-    {% snippet "package/snippets/resources.html", pkg=pkg, active=res.id %}
+    {% snippet "package/snippets/resources.html", pkg=pkg, active=res.id, action='read' %}
   {% endblock %}
 
   {% block resource_license %}

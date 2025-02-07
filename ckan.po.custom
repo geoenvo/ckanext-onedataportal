@@ -1572,7 +1572,7 @@ msgstr ""
 #: ckan/templates/snippets/custom_form_fields.html:20
 #: ckan/templates/snippets/custom_form_fields.html:37
 msgid "Custom Field"
-msgstr ""
+msgstr "Kolom Kustom"
 
 #: ckan/templates/development/snippets/form.html:22
 msgid "Markdown"
@@ -3546,7 +3546,7 @@ msgstr "Tidak punya izin untuk membaca paket %s"
 
 #: ckan/views/dataset.py:505
 msgid "Viewing datasets of type \"{package_type}\" is not supported ({file_!r})."
-msgstr "Penayangan dataset dari tipe \"{package_type}\" tidak didukung ({file_!r})."
+msgstr "Penayangan kumpulan data dari tipe \"{package_type}\" tidak didukung ({file_!r})."
 
 #: ckan/views/dataset.py:526
 msgid "Unauthorized to create a package"

@@ -5164,7 +5164,7 @@ msgstr "Tidak ada grup"
 #: ckanext/stats/templates/ckanext/stats/index.html:114
 #: ckanext/stats/templates/ckanext/stats/index.html:168
 msgid "Top Tags"
-msgstr "Tag Tertinggi"
+msgstr "Tag Teratas"
 
 #: ckanext/stats/templates/ckanext/stats/index.html:118
 msgid "Tag Name"

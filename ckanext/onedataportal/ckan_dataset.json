@@ -42,13 +42,6 @@
       "preset": "dataset_organization"
     },
     {
-      "field_name": "allowed_users_str",
-      "label": "Allowed Users",
-      "preset": "allowed_users_autocomplete",
-      "form_placeholder": "Allowed Users",
-      "help_text": "Assign users that will be given access to the private dataset"
-    },
-    {
       "field_name": "url",
       "label": "Source",
       "form_placeholder": "http://example.com/dataset.json",

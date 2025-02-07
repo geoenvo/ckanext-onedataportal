@@ -90,34 +90,54 @@ class OnedataportalPlugin(p.SingletonPlugin, DefaultTranslation):
         """
         #log.debug('>>>>>>> _data_dict_is_dataset')
         return (
-            u'creator_user_id' in data_dict
-            or u'owner_org' in data_dict
-            or u'resources' in data_dict
-            or data_dict.get(u'type') == u'dataset')
+            'creator_user_id' in data_dict
+            or 'owner_org' in data_dict
+            or 'resources' in data_dict
+            or data_dict.get('type') == 'dataset')
+
+    def _data_dict_is_resource(self, data_dict):
+        """Check if data_dict is a dataset.
+        """
+        #log.debug('>>>>>>> _data_dict_is_resource')
+        return 'format' in data_dict
 
     def _resource_is_zip_shapefile(self, resource):
-        """Check if an uploaded resource is a zipped file and format is set to shp.
+        """Check if an uploaded resource is a zip file and format is set to shp.
         """
-        if resource.get(u'format', u'').lower() == 'shp' and resource.get(u'url', u'').lower().endswith('zip'):
+        if resource.get('format', '').lower() == 'shp' and resource.get('url', '').lower().endswith('zip'):
+            #log.debug("resource uploaded is a zip shapefile")
             return True
+        #log.debug("resource uploaded is not a zip shapefile")
+        return False
+
+    def _resource_is_text_file(self, resource):
+        """Check if an uploaded resource is a text file and format is set to txt.
+        """
+        if resource.get('format', '').lower() == 'txt' and resource.get('url', '').lower().endswith('txt'):
+            #log.debug("resource uploaded is a text file")
+            return True
+        #log.debug("resource uploaded is not a text file")
         return False
 
     def _resource_is_metadata_file(self, resource):
         """Check if an uploaded resource is a .qmd or ISO 19115 .xml metadata file.
         """
-        if resource.get(u'format', u'').lower() == 'qmd' and resource.get(u'url', u'').lower().endswith('qmd'):
+        if resource.get('format', '').lower() == 'qmd' and resource.get('url', '').lower().endswith('qmd'):
+            #log.debug("resource uploaded is a qmd metadata file")
             return True
-        if resource.get(u'format', u'').lower() == 'xml' and resource.get(u'url', u'').lower().endswith('xml'):
+        if resource.get('format', '').lower() == 'xml' and resource.get('url', '').lower().endswith('xml'):
+            #log.debug("resource uploaded is a xml metadata file")
             return True
+        #log.debug("resource uploaded is not a metadata file")
         return False
 
-    def before_create(self, context, data_dict):
+    def before_resource_create(self, context, data_dict):
         """IResourceController hook method.
         """
-        log.debug('>>>>>>> BEFORE_CREATE')
+        log.debug('>>>>>>> BEFORE_CREATE RESOURCE')
         return data_dict
 
-    def after_create(self, context, data_dict):
+    def after_resource_create(self, context, data_dict):
         """IResourceController hook method called after saving a new dataset resource.
         """
         log.debug('>>>>>>> AFTER_CREATE')
@@ -125,7 +145,7 @@ class OnedataportalPlugin(p.SingletonPlugin, DefaultTranslation):
 
         if is_dataset:
             log.debug('>>>>>>> AFTER_CREATE DATASET')
-            for resource in data_dict.get(u'resources', []):
+            for resource in data_dict.get('resources', []):
                 #log.debug('resource id {}'.format(resource['id']))
                 pass
         else:
@@ -144,14 +164,14 @@ class OnedataportalPlugin(p.SingletonPlugin, DefaultTranslation):
                 save_metadata_from_resource_file(data_dict)
             pass
 
-    def before_update(self, context, current_resource, updated_resource):
+    def before_resource_update(self, context, current_resource, updated_resource):
         """IResourceController hook method called before updating an existing dataset resource.
         """
         log.debug('>>>>>>> HOOK BEFORE_UPDATE')
         #log.debug(updated_resource)
         return updated_resource
 
-    def after_update(self, context, data_dict):
+    def after_resource_update(self, context, data_dict):
         """IResourceController hook method called after updating an existing dataset resource.
         """
         log.debug('>>>>>>> HOOK AFTER_UPDATE')
@@ -194,8 +214,8 @@ class OnedataportalPlugin(p.SingletonPlugin, DefaultTranslation):
                 # resource file changed and is not a zip shapefile or metadata file?
                 # clear resource's 'spatial_metadata' and 'spatial_metadata_iso_19115' resource scheming field
                 #log.debug('resource file changed from zip shapefile or metadata file')
-                spatial_metadata = data_dict.get(u'spatial_metadata', u'')
-                spatial_metadata_iso_19115 = data_dict.get(u'spatial_metadata_iso_19115', u'')
+                spatial_metadata = data_dict.get('spatial_metadata', '')
+                spatial_metadata_iso_19115 = data_dict.get('spatial_metadata_iso_19115', '')
                 resource_data = {'id': data_dict['id']}
                 if spatial_metadata:
                     resource_data['spatial_metadata'] = ''

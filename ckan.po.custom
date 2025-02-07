@@ -3007,12 +3007,12 @@ msgstr "Tidak ditemukan kumpulan data untuk \"{query}\""
 #: ckan/templates/snippets/search_result_text.html:17
 msgid "{number} dataset found"
 msgid_plural "{number} datasets found"
-msgstr[0] "{number} kumpulan data found"
-msgstr[1] "{number} kumpulan data found"
+msgstr[0] "{number} kumpulan data ditemukan"
+msgstr[1] "{number} kumpulan data ditemukan"
 
 #: ckan/templates/snippets/search_result_text.html:18
 msgid "No datasets found"
-msgstr "Tidak ditemukan kumpulan data"
+msgstr "Tidak ada kumpulan data yang ditemukan"
 
 #: ckan/templates/snippets/search_result_text.html:21
 msgid "{number} group found for \"{query}\""

@@ -186,7 +186,9 @@ def convert_shpz_shapefile(resource):
     import os
     import shapefile
     import shutil
-    import cgi
+    # import cgi
+    # 202512 ckan 2.11.4 uses flask file storage class for uploads replacing cgi.FieldStorage()
+    from werkzeug.datastructures import FileStorage as FlaskFileStorage
 
     SHP_POINT = 1
     SHP_POLYLINE = 3
@@ -288,10 +290,12 @@ def convert_shpz_shapefile(resource):
                             context = {'ignore_auth': True, 'user': t.get_action('get_site_user')({'ignore_auth': True})['name'], '_convert_shpz_shapefile': True}
                             # create a resource file copy of the original PointZ/M, PolyLineZ/M, PolygonZ/M, MultiPointZ/M upload but in zip format
                             with open(resource_file, 'rb') as finput:
-                                upload = cgi.FieldStorage()
+                                # upload = cgi.FieldStorage()
+                                # upload.file = finput
+                                upload = FlaskFileStorage()
+                                upload.stream = finput
                                 #upload.filename = getattr(finput, 'name', 'data')
                                 upload.filename = os.path.basename(resource['url']) # use original upload filename
-                                upload.file = finput
                                 resource_data = {
                                     'package_id': resource['package_id'],
                                     'name': resource['name'],
@@ -301,9 +305,11 @@ def convert_shpz_shapefile(resource):
                                 t.get_action('resource_create')(context, resource_data)
                             # replace uploaded original resource file
                             with open(output_zip_shp_path, 'rb') as foutput:
-                                upload = cgi.FieldStorage()
+                                # upload = cgi.FieldStorage()
+                                # upload.file = foutput
+                                upload = FlaskFileStorage()
+                                upload.stream = foutput
                                 upload.filename = getattr(foutput, 'name', 'data')
-                                upload.file = foutput
                                 resource_data = {
                                     'id': resource['id'],
                                     'description': '{} (shapefile converted from {} to {})'.format(resource['description'], original_shapetype, new_shapetype),
